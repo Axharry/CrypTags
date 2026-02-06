@@ -359,4 +359,40 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: 32,
   },
+  donateCard: {
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#6C5CE7',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  donateContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  donateIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  donateTextContainer: {
+    flex: 1,
+    marginLeft: 14,
+    marginRight: 8,
+  },
+  donateTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  donateSubtitle: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.85)',
+    marginTop: 2,
+  },
 });
