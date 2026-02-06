@@ -319,3 +319,5 @@ agent_communication:
     message: "CrypTags MVP built - Backend API with JWT auth, contacts CRUD, crypto management, export endpoints. Frontend with login/register, contacts list, detail view, add/edit, settings with theme switch. Ready for backend testing."
   - agent: "testing"
     message: "Backend API comprehensive testing completed successfully. All 16 test suites passed including: Auth (register/login/me), Contact CRUD with filters and validation, Custom crypto management, Data export (JSON/CSV), Address validation, and health checks. All endpoints working correctly with proper authentication, validation, and error handling."
+  - agent: "testing"
+    message: "NEW FEATURES TESTING COMPLETED - Groups and Merge functionality fully tested and working: ✅ Group CRUD (create/list/get/update/delete with contact_count), ✅ Contact-Group relationships (add/remove contacts, filter by group), ✅ Merge contacts (combines addresses, notes, groups; optional source deletion), ✅ Advanced sorting/filtering (name_desc, updated_desc, crypto_type filters). All 24 test suites passed (100% success rate)."
