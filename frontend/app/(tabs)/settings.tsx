@@ -8,14 +8,18 @@ import {
   Alert,
   Share,
   Platform,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
 import { useThemeStore, getTheme } from '../../stores/themeStore';
 import { useAuthStore } from '../../stores/authStore';
 import { exportAPI } from '../../services/api';
 import * as Clipboard from 'expo-clipboard';
+
+const DONATION_URL = 'https://coindrop.to/xolaria';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
