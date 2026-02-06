@@ -116,6 +116,9 @@ backend:
       - working: true
         agent: "main"
         comment: "Tested via curl - registration creates user and returns JWT token"
+      - working: true
+        agent: "testing"
+        comment: "Comprehensive test passed - user registration with valid data, JWT token generation, duplicate email rejection (400), proper response structure validation"
 
   - task: "User Login"
     implemented: true
@@ -128,6 +131,9 @@ backend:
       - working: true
         agent: "main"
         comment: "Tested via curl - login returns JWT token"
+      - working: true
+        agent: "testing"
+        comment: "Comprehensive test passed - valid credentials return JWT token, invalid credentials return 401, proper response structure validation"
 
   - task: "Contact CRUD Operations"
     implemented: true
@@ -135,11 +141,14 @@ backend:
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Created contact via curl - need full testing"
+      - working: true
+        agent: "testing"
+        comment: "All CRUD operations working - CREATE (with crypto address validation), READ (with search/crypto_type/favorites filters), UPDATE (partial updates), DELETE, and favorite toggle all functioning correctly. Proper auth checks in place."
 
   - task: "Custom Cryptocurrency Management"
     implemented: true
@@ -147,27 +156,38 @@ backend:
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "API endpoints created, returns 10 default cryptos"
+      - working: true
+        agent: "testing"
+        comment: "Full crypto management working - GET returns 10 default cryptos plus custom ones, POST creates custom cryptos with validation (duplicate/default conflict checks), DELETE removes custom cryptos with proper auth"
 
   - task: "Data Export (JSON/CSV)"
     implemented: true
-    working: NA
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Both export formats working correctly - JSON export returns proper structure with contacts array and timestamp, CSV export generates valid CSV with proper headers and contact data formatting"
 
   - task: "Crypto Address Validation"
     implemented: true
-    working: NA
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Address validation working correctly - validates ETH addresses (valid returns true, invalid returns false), BTC addresses work, integrated with contact creation/update for proper validation"
 
 frontend:
   - task: "Authentication Flow (Login/Register)"
