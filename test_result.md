@@ -189,6 +189,54 @@ backend:
         agent: "testing"
         comment: "Address validation working correctly - validates ETH addresses (valid returns true, invalid returns false), BTC addresses work, integrated with contact creation/update for proper validation"
 
+  - task: "Group CRUD Operations"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "NEW FEATURE - All Group CRUD operations working perfectly: CREATE groups with name/description, LIST groups with contact_count, GET single group, UPDATE group details, DELETE group (preserves contacts). All endpoints authenticated and validated."
+
+  - task: "Contact-Group Relationships"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "NEW FEATURE - Contact-Group relationships working: ADD contact to group, REMOVE contact from group, FILTER contacts by group_id, contact_count updates correctly in groups. All relationship endpoints working with proper validation."
+
+  - task: "Merge Contacts Functionality"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "NEW FEATURE - Contact merge working perfectly: Merges crypto addresses from source contacts into primary contact, combines notes with source attribution, merges group memberships, optionally deletes source contacts. All data preserved correctly."
+
+  - task: "Advanced Sorting and Filtering"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "NEW FEATURE - Advanced contact sorting/filtering working: sort_by (name_desc, updated_desc, etc), crypto_type filtering (ETH, BTC), group_id filtering, favorites_only filter. All sorting orders and filters working correctly."
+
 frontend:
   - task: "Authentication Flow (Login/Register)"
     implemented: true
