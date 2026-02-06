@@ -1092,6 +1092,15 @@ class CrypTagsAPITester:
             except:
                 pass
         
+        # Delete remaining groups
+        for group_id in self.created_groups[:]:
+            try:
+                response = self.session.delete(f"{self.base_url}/groups/{group_id}")
+                if response.status_code == 200:
+                    self.created_groups.remove(group_id)
+            except:
+                pass
+        
         print("✅ Cleanup completed")
 
     def run_all_tests(self):
