@@ -24,7 +24,7 @@ class CrypTagsAPITester:
         self.session = requests.Session()
         self.auth_token = None
         self.test_user_data = {
-            "email": f"test.user.{uuid.uuid4().hex[:8]}@cryptags.test",
+            "email": f"test.user.{uuid.uuid4().hex[:8]}@example.com",
             "password": "SecurePassword123!",
             "name": "Test User CrypTags"
         }
