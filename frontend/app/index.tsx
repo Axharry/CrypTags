@@ -1,30 +1,33 @@
-import { Text, View, StyleSheet, Image } from "react-native";
-
-const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+import React, { useEffect } from 'react';
+import { Redirect } from 'expo-router';
+import { useAuthStore } from '../src/stores/authStore';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { useThemeStore, getTheme } from '../src/stores/themeStore';
 
 export default function Index() {
-  console.log(EXPO_PUBLIC_BACKEND_URL, "EXPO_PUBLIC_BACKEND_URL");
+  const { isAuthenticated, isLoading } = useAuthStore();
+  const isDark = useThemeStore((state) => state.isDark);
+  const theme = getTheme(isDark);
 
-  return (
-    <View style={styles.container}>
-      <Image
-        source={require("../assets/images/app-image.png")}
-        style={styles.image}
-      />
-    </View>
-  );
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+      </View>
+    );
+  }
+
+  if (isAuthenticated) {
+    return <Redirect href="/(tabs)" />;
+  }
+
+  return <Redirect href="/(auth)/login" />;
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0c0c0c",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  image: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "contain",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
