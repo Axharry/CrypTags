@@ -1123,6 +1123,21 @@ class CrypTagsAPITester:
         test_results["contact_update"] = self.test_contacts_update()
         test_results["contact_favorite"] = self.test_contacts_favorite_toggle()
         
+        # NEW: Group CRUD Tests
+        test_results["group_create"] = self.test_groups_create()
+        test_results["group_list"] = self.test_groups_list()
+        test_results["group_get"] = self.test_groups_get_single()
+        test_results["group_update"] = self.test_groups_update()
+        
+        # NEW: Contact-Group Relationship Tests
+        test_results["contact_group_relationship"] = self.test_contact_group_relationships()
+        
+        # NEW: Merge Contacts Test
+        test_results["merge_contacts"] = self.test_merge_contacts()
+        
+        # NEW: Advanced Sorting/Filtering Tests
+        test_results["advanced_filtering"] = self.test_advanced_sorting_filtering()
+        
         # Custom Crypto Tests
         test_results["crypto_list"] = self.test_cryptos_list()
         test_results["crypto_create"] = self.test_cryptos_create_custom()
@@ -1141,6 +1156,9 @@ class CrypTagsAPITester:
         # Contact deletion test (after other tests)
         test_results["contact_delete"] = self.test_contacts_delete()
         
+        # NEW: Group deletion test (after other group tests)
+        test_results["group_delete"] = self.test_groups_delete()
+        
         # Cleanup
         self.cleanup()
         
@@ -1154,7 +1172,7 @@ class CrypTagsAPITester:
         
         for test_name, result in test_results.items():
             status = "✅ PASS" if result else "❌ FAIL"
-            print(f"{test_name:<20} {status}")
+            print(f"{test_name:<25} {status}")
             if result:
                 passed += 1
             else:
