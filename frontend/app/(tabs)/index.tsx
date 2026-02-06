@@ -12,10 +12,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useThemeStore, getTheme } from '../../src/stores/themeStore';
-import { contactsAPI, Contact } from '../../src/services/api';
-import { ContactCard } from '../../src/components/ContactCard';
-import { Input } from '../../src/components/Input';
+import { useThemeStore, getTheme } from '../../stores/themeStore';
+import { contactsAPI, Contact } from '../../services/api';
+import { ContactCard } from '../../components/ContactCard';
+import { Input } from '../../components/Input';
 
 export default function ContactsScreen() {
   const isDark = useThemeStore((state) => state.isDark);

@@ -14,10 +14,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
-import { useThemeStore, getTheme } from '../../src/stores/themeStore';
-import { contactsAPI, Contact, CryptoAddress } from '../../src/services/api';
-import { CryptoAddressItem } from '../../src/components/CryptoAddressItem';
-import { Button } from '../../src/components/Button';
+import { useThemeStore, getTheme } from '../../stores/themeStore';
+import { contactsAPI, Contact, CryptoAddress } from '../../services/api';
+import { CryptoAddressItem } from '../../components/CryptoAddressItem';
+import { Button } from '../../components/Button';
 import * as Clipboard from 'expo-clipboard';
 
 const DEFAULT_AVATARS = [

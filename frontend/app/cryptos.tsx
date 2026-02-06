@@ -13,10 +13,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useThemeStore, getTheme } from '../src/stores/themeStore';
-import { cryptosAPI, CustomCrypto, DefaultCrypto } from '../src/services/api';
-import { Input } from '../src/components/Input';
-import { Button } from '../src/components/Button';
+import { useThemeStore, getTheme } from '../stores/themeStore';
+import { cryptosAPI, CustomCrypto, DefaultCrypto } from '../services/api';
+import { Input } from '../components/Input';
+import { Button } from '../components/Button';
 
 export default function CryptosScreen() {
   const isDark = useThemeStore((state) => state.isDark);

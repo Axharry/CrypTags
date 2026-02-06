@@ -12,9 +12,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useThemeStore, getTheme } from '../../src/stores/themeStore';
-import { useAuthStore } from '../../src/stores/authStore';
-import { exportAPI } from '../../src/services/api';
+import { useThemeStore, getTheme } from '../../stores/themeStore';
+import { useAuthStore } from '../../stores/authStore';
+import { exportAPI } from '../../services/api';
 import * as Clipboard from 'expo-clipboard';
 
 type ThemeMode = 'light' | 'dark' | 'system';

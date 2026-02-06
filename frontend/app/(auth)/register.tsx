@@ -12,12 +12,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useThemeStore, getTheme } from '../../src/stores/themeStore';
-import { useAuthStore } from '../../src/stores/authStore';
-import { Input } from '../../src/components/Input';
-import { Button } from '../../src/components/Button';
-import { authAPI } from '../../src/services/api';
-import { validateEmail, validatePassword } from '../../src/utils/validation';
+import { useThemeStore, getTheme } from '../../stores/themeStore';
+import { useAuthStore } from '../../stores/authStore';
+import { Input } from '../../components/Input';
+import { Button } from '../../components/Button';
+import { authAPI } from '../../services/api';
+import { validateEmail, validatePassword } from '../../utils/validation';
 
 export default function RegisterScreen() {
   const isDark = useThemeStore((state) => state.isDark);

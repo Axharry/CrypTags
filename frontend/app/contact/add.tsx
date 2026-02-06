@@ -14,11 +14,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { useThemeStore, getTheme } from '../../src/stores/themeStore';
-import { contactsAPI, cryptosAPI, CryptoAddress, DefaultCrypto, CustomCrypto } from '../../src/services/api';
-import { Input } from '../../src/components/Input';
-import { Button } from '../../src/components/Button';
-import { validateCryptoAddress } from '../../src/utils/validation';
+import { useThemeStore, getTheme } from '../../stores/themeStore';
+import { contactsAPI, cryptosAPI, CryptoAddress, DefaultCrypto, CustomCrypto } from '../../services/api';
+import { Input } from '../../components/Input';
+import { Button } from '../../components/Button';
+import { validateCryptoAddress } from '../../utils/validation';
 import uuid from 'react-native-uuid';
 
 const DEFAULT_AVATARS = [

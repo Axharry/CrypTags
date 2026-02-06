@@ -11,8 +11,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
-import { useThemeStore, getTheme } from '../src/stores/themeStore';
-import { Button } from '../src/components/Button';
+import { useThemeStore, getTheme } from '../stores/themeStore';
+import { Button } from '../components/Button';
 
 export default function ScanScreen() {
   const isDark = useThemeStore((state) => state.isDark);

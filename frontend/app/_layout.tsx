@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useThemeStore, getTheme } from '../src/stores/themeStore';
-import { useAuthStore } from '../src/stores/authStore';
+import { useThemeStore, getTheme } from '../stores/themeStore';
+import { useAuthStore } from '../stores/authStore';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
 export default function RootLayout() {

@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { Redirect } from 'expo-router';
-import { useAuthStore } from '../src/stores/authStore';
+import { useAuthStore } from '../stores/authStore';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { useThemeStore, getTheme } from '../src/stores/themeStore';
+import { useThemeStore, getTheme } from '../stores/themeStore';
 
 export default function Index() {
   const { isAuthenticated, isLoading } = useAuthStore();

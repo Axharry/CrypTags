@@ -1,6 +1,6 @@
 import React from 'react';
 import { Stack } from 'expo-router';
-import { useThemeStore, getTheme } from '../../src/stores/themeStore';
+import { useThemeStore, getTheme } from '../../stores/themeStore';
 
 export default function AuthLayout() {
   const isDark = useThemeStore((state) => state.isDark);
