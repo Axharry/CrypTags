@@ -33,6 +33,21 @@ export default function SettingsScreen() {
     await setMode(newMode);
   };
 
+  const handleSupportCrypTags = async () => {
+    try {
+      if (Platform.OS === 'web') {
+        // Open in new tab for web
+        window.open(DONATION_URL, '_blank');
+      } else {
+        // Use WebBrowser for native apps
+        await WebBrowser.openBrowserAsync(DONATION_URL);
+      }
+    } catch (error) {
+      // Fallback to Linking
+      Linking.openURL(DONATION_URL);
+    }
+  };
+
   const handleExport = async (format: 'json' | 'csv') => {
     setExporting(true);
     try {
