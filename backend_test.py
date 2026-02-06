@@ -646,6 +646,410 @@ class CrypTagsAPITester:
         
         return True
 
+    # ========================
+    # NEW: Group Tests for CrypTags Groups Feature  
+    # ========================
+    
+    def test_groups_create(self):
+        """Test group creation endpoint"""
+        print("🧪 Testing group creation...")
+        
+        # Test creating Ethereum Foundation group
+        group_data_1 = {
+            "name": "Ethereum Foundation",
+            "description": "ETH core team"
+        }
+        
+        response = self.session.post(f"{self.base_url}/groups", json=group_data_1)
+        
+        if response.status_code != 200:
+            print(f"❌ Group creation failed: {response.status_code} - {response.text}")
+            return False
+        
+        data = response.json()
+        group_id_1 = data.get("id")
+        if not group_id_1:
+            print(f"❌ No group ID in response: {data}")
+            return False
+        
+        self.created_groups.append(group_id_1)
+        print(f"✅ Group 1 created successfully - ID: {group_id_1}, Name: {data['name']}")
+        
+        # Test creating DeFi Projects group
+        group_data_2 = {
+            "name": "DeFi Projects", 
+            "description": "DeFi related contacts"
+        }
+        
+        response_2 = self.session.post(f"{self.base_url}/groups", json=group_data_2)
+        
+        if response_2.status_code != 200:
+            print(f"❌ Group 2 creation failed: {response_2.status_code} - {response_2.text}")
+            return False
+        
+        data_2 = response_2.json()
+        group_id_2 = data_2.get("id")
+        if not group_id_2:
+            print(f"❌ No group ID in response 2: {data_2}")
+            return False
+        
+        self.created_groups.append(group_id_2)
+        print(f"✅ Group 2 created successfully - ID: {group_id_2}, Name: {data_2['name']}")
+        
+        # Verify contact_count is 0 for new groups
+        if data.get("contact_count") != 0 or data_2.get("contact_count") != 0:
+            print(f"❌ New groups should have contact_count=0, got {data.get('contact_count')} and {data_2.get('contact_count')}")
+            return False
+        
+        print("✅ Group creation with contact_count validation successful")
+        return True
+
+    def test_groups_list(self):
+        """Test group listing endpoint"""
+        print("🧪 Testing group listing...")
+        
+        response = self.session.get(f"{self.base_url}/groups")
+        
+        if response.status_code != 200:
+            print(f"❌ Group listing failed: {response.status_code} - {response.text}")
+            return False
+        
+        groups = response.json()
+        
+        if len(groups) < 2:
+            print(f"❌ Expected at least 2 groups, got {len(groups)}")
+            return False
+        
+        # Verify each group has contact_count
+        for group in groups:
+            if "contact_count" not in group:
+                print(f"❌ Group missing contact_count: {group}")
+                return False
+            if group["name"] in ["Ethereum Foundation", "DeFi Projects"]:
+                print(f"✅ Found expected group: {group['name']} (contact_count: {group['contact_count']})")
+        
+        print(f"✅ Group listing successful - {len(groups)} groups found with contact counts")
+        return True
+
+    def test_groups_get_single(self):
+        """Test get single group endpoint"""
+        print("🧪 Testing single group retrieval...")
+        
+        if not self.created_groups:
+            print("❌ No groups available for testing")
+            return False
+        
+        group_id = self.created_groups[0]
+        response = self.session.get(f"{self.base_url}/groups/{group_id}")
+        
+        if response.status_code != 200:
+            print(f"❌ Group retrieval failed: {response.status_code} - {response.text}")
+            return False
+        
+        data = response.json()
+        if data.get("id") != group_id:
+            print(f"❌ Group ID mismatch: expected {group_id}, got {data.get('id')}")
+            return False
+        
+        if "contact_count" not in data:
+            print(f"❌ Group missing contact_count: {data}")
+            return False
+        
+        print(f"✅ Group retrieved successfully - {data['name']} (contact_count: {data['contact_count']})")
+        return True
+
+    def test_groups_update(self):
+        """Test group update endpoint"""
+        print("🧪 Testing group update...")
+        
+        if not self.created_groups:
+            print("❌ No groups available for testing")
+            return False
+        
+        group_id = self.created_groups[0]
+        update_data = {
+            "name": "Ethereum Foundation Updated",
+            "description": "Updated ETH core team description"
+        }
+        
+        response = self.session.put(f"{self.base_url}/groups/{group_id}", json=update_data)
+        
+        if response.status_code != 200:
+            print(f"❌ Group update failed: {response.status_code} - {response.text}")
+            return False
+        
+        data = response.json()
+        if data.get("name") != update_data["name"]:
+            print(f"❌ Name not updated: expected {update_data['name']}, got {data.get('name')}")
+            return False
+        
+        print(f"✅ Group updated successfully - new name: {data['name']}")
+        return True
+
+    def test_contact_group_relationships(self):
+        """Test adding and removing contacts from groups"""
+        print("🧪 Testing contact-group relationships...")
+        
+        if not self.created_groups or not self.created_contacts:
+            print("❌ Need both groups and contacts for testing relationships")
+            return False
+        
+        group_id = self.created_groups[0]
+        contact_id = self.created_contacts[0]
+        
+        # Add contact to group
+        response = self.session.post(f"{self.base_url}/groups/{group_id}/contacts/{contact_id}")
+        
+        if response.status_code != 200:
+            print(f"❌ Add contact to group failed: {response.status_code} - {response.text}")
+            return False
+        
+        print(f"✅ Contact added to group successfully")
+        
+        # Verify contact is in group by filtering contacts
+        filter_response = self.session.get(f"{self.base_url}/contacts?group_id={group_id}")
+        
+        if filter_response.status_code != 200:
+            print(f"❌ Filter contacts by group failed: {filter_response.status_code} - {filter_response.text}")
+            return False
+        
+        filtered_contacts = filter_response.json()
+        contact_found = any(contact["id"] == contact_id for contact in filtered_contacts)
+        
+        if not contact_found:
+            print(f"❌ Contact {contact_id} not found in group {group_id}")
+            return False
+        
+        print(f"✅ Contact filtering by group working - found {len(filtered_contacts)} contacts in group")
+        
+        # Verify group contact_count increased
+        group_response = self.session.get(f"{self.base_url}/groups/{group_id}")
+        if group_response.status_code == 200:
+            group_data = group_response.json()
+            if group_data.get("contact_count", 0) > 0:
+                print(f"✅ Group contact_count increased: {group_data['contact_count']}")
+            else:
+                print(f"❌ Group contact_count should be > 0, got {group_data.get('contact_count')}")
+                return False
+        
+        # Remove contact from group
+        remove_response = self.session.delete(f"{self.base_url}/groups/{group_id}/contacts/{contact_id}")
+        
+        if remove_response.status_code != 200:
+            print(f"❌ Remove contact from group failed: {remove_response.status_code} - {remove_response.text}")
+            return False
+        
+        print(f"✅ Contact removed from group successfully")
+        
+        # Verify contact is no longer in group
+        verify_response = self.session.get(f"{self.base_url}/contacts?group_id={group_id}")
+        if verify_response.status_code == 200:
+            verify_contacts = verify_response.json()
+            contact_still_found = any(contact["id"] == contact_id for contact in verify_contacts)
+            if contact_still_found:
+                print(f"❌ Contact should not be in group after removal")
+                return False
+            print(f"✅ Contact successfully removed from group")
+        
+        return True
+
+    def test_merge_contacts(self):
+        """Test contact merge functionality"""
+        print("🧪 Testing contact merge functionality...")
+        
+        # First create Alice and Bob contacts for merging
+        alice_data = {
+            "name": "Alice Crypto",
+            "notes": "Alice's original notes",
+            "crypto_addresses": [
+                {
+                    "crypto_type": "ETH",
+                    "address": "0x1234567890123456789012345678901234567890",
+                    "label": "Alice ETH"
+                }
+            ]
+        }
+        
+        bob_data = {
+            "name": "Bob Bitcoin",
+            "notes": "Bob's original notes", 
+            "crypto_addresses": [
+                {
+                    "crypto_type": "BTC", 
+                    "address": "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
+                    "label": "Bob BTC"
+                }
+            ]
+        }
+        
+        # Create Alice
+        alice_response = self.session.post(f"{self.base_url}/contacts", json=alice_data)
+        if alice_response.status_code != 200:
+            print(f"❌ Failed to create Alice: {alice_response.status_code}")
+            return False
+        alice_id = alice_response.json()["id"]
+        self.created_contacts.append(alice_id)
+        
+        # Create Bob  
+        bob_response = self.session.post(f"{self.base_url}/contacts", json=bob_data)
+        if bob_response.status_code != 200:
+            print(f"❌ Failed to create Bob: {bob_response.status_code}")
+            return False
+        bob_id = bob_response.json()["id"]
+        self.created_contacts.append(bob_id)
+        
+        print(f"✅ Created test contacts - Alice: {alice_id}, Bob: {bob_id}")
+        
+        # Perform merge operation
+        merge_data = {
+            "primary_contact_id": alice_id,
+            "source_contact_ids": [bob_id],
+            "delete_source_contacts": True
+        }
+        
+        merge_response = self.session.post(f"{self.base_url}/contacts/merge", json=merge_data)
+        
+        if merge_response.status_code != 200:
+            print(f"❌ Contact merge failed: {merge_response.status_code} - {merge_response.text}")
+            return False
+        
+        merged_contact = merge_response.json()
+        
+        # Verify merged contact has addresses from both contacts
+        addresses = merged_contact.get("crypto_addresses", [])
+        eth_found = any(addr["crypto_type"] == "ETH" for addr in addresses)
+        btc_found = any(addr["crypto_type"] == "BTC" for addr in addresses)
+        
+        if not eth_found or not btc_found:
+            print(f"❌ Merged contact missing addresses - ETH: {eth_found}, BTC: {btc_found}")
+            return False
+        
+        print(f"✅ Merge successful - contact has {len(addresses)} addresses (ETH + BTC)")
+        
+        # Verify notes were merged
+        merged_notes = merged_contact.get("notes", "")
+        if "Alice's original notes" not in merged_notes or "Bob's original notes" not in merged_notes:
+            print(f"❌ Notes not properly merged: {merged_notes}")
+            return False
+        
+        print(f"✅ Notes merged successfully")
+        
+        # Verify Bob was deleted (since delete_source_contacts=True)
+        bob_verify_response = self.session.get(f"{self.base_url}/contacts/{bob_id}")
+        if bob_verify_response.status_code != 404:
+            print(f"❌ Bob should be deleted after merge, got {bob_verify_response.status_code}")
+            return False
+        
+        print(f"✅ Source contact Bob successfully deleted after merge")
+        
+        # Remove Bob from created_contacts since it's deleted
+        if bob_id in self.created_contacts:
+            self.created_contacts.remove(bob_id)
+        
+        return True
+
+    def test_advanced_sorting_filtering(self):
+        """Test advanced sorting and filtering options"""
+        print("🧪 Testing advanced sorting and filtering...")
+        
+        # Test descending name sort
+        desc_response = self.session.get(f"{self.base_url}/contacts?sort_by=name_desc")
+        if desc_response.status_code != 200:
+            print(f"❌ Name descending sort failed: {desc_response.status_code}")
+            return False
+        
+        desc_contacts = desc_response.json()
+        if len(desc_contacts) >= 2:
+            # Verify descending order
+            first_name = desc_contacts[0]["name"]
+            second_name = desc_contacts[1]["name"] 
+            if first_name < second_name:
+                print(f"❌ Descending sort not working: {first_name} should be after {second_name}")
+                return False
+        
+        print(f"✅ Descending name sort working - {len(desc_contacts)} contacts")
+        
+        # Test updated_desc sort
+        updated_response = self.session.get(f"{self.base_url}/contacts?sort_by=updated_desc")
+        if updated_response.status_code != 200:
+            print(f"❌ Updated descending sort failed: {updated_response.status_code}")
+            return False
+        
+        updated_contacts = updated_response.json()
+        print(f"✅ Updated descending sort working - {len(updated_contacts)} contacts")
+        
+        # Test crypto type filtering
+        eth_filter_response = self.session.get(f"{self.base_url}/contacts?crypto_type=ETH")
+        if eth_filter_response.status_code != 200:
+            print(f"❌ ETH crypto filter failed: {eth_filter_response.status_code}")
+            return False
+        
+        eth_contacts = eth_filter_response.json()
+        
+        # Verify all returned contacts have ETH addresses
+        for contact in eth_contacts:
+            has_eth = any(addr["crypto_type"] == "ETH" for addr in contact.get("crypto_addresses", []))
+            if not has_eth:
+                print(f"❌ Contact {contact['name']} in ETH filter but has no ETH address")
+                return False
+        
+        print(f"✅ ETH crypto type filter working - {len(eth_contacts)} ETH contacts")
+        
+        # Test BTC crypto type filtering
+        btc_filter_response = self.session.get(f"{self.base_url}/contacts?crypto_type=BTC")
+        if btc_filter_response.status_code == 200:
+            btc_contacts = btc_filter_response.json()
+            print(f"✅ BTC crypto type filter working - {len(btc_contacts)} BTC contacts")
+        
+        return True
+
+    def test_groups_delete(self):
+        """Test group deletion (ensuring contacts are NOT deleted)"""
+        print("🧪 Testing group deletion...")
+        
+        if not self.created_groups:
+            print("❌ No groups available for testing deletion")
+            return False
+        
+        # Get contacts count before group deletion
+        contacts_before_response = self.session.get(f"{self.base_url}/contacts")
+        if contacts_before_response.status_code != 200:
+            print(f"❌ Failed to get contacts before group deletion")
+            return False
+        contacts_before = len(contacts_before_response.json())
+        
+        # Delete a group
+        group_id = self.created_groups[-1]  # Use last group for deletion
+        response = self.session.delete(f"{self.base_url}/groups/{group_id}")
+        
+        if response.status_code != 200:
+            print(f"❌ Group deletion failed: {response.status_code} - {response.text}")
+            return False
+        
+        print(f"✅ Group deleted successfully")
+        
+        # Verify group is deleted
+        verify_response = self.session.get(f"{self.base_url}/groups/{group_id}")
+        if verify_response.status_code != 404:
+            print(f"❌ Deleted group should return 404, got {verify_response.status_code}")
+            return False
+        
+        # Verify contacts are NOT deleted
+        contacts_after_response = self.session.get(f"{self.base_url}/contacts")
+        if contacts_after_response.status_code != 200:
+            print(f"❌ Failed to get contacts after group deletion")
+            return False
+        contacts_after = len(contacts_after_response.json())
+        
+        if contacts_after != contacts_before:
+            print(f"❌ Contacts count changed after group deletion: {contacts_before} → {contacts_after}")
+            return False
+        
+        print(f"✅ Group deletion successful - contacts preserved ({contacts_after} contacts)")
+        
+        # Remove from created_groups list
+        self.created_groups.remove(group_id)
+        return True
     def test_health_endpoints(self):
         """Test health check endpoints"""
         print("🧪 Testing health endpoints...")
