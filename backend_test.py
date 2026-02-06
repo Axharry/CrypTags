@@ -578,7 +578,7 @@ class CrypTagsAPITester:
             
             # Check header
             header = rows[0]
-            expected_columns = ["Name", "Crypto Type", "Address", "Label", "Notes", "Is Favorite"]
+            expected_columns = ["Name", "Crypto Type", "Address", "Label", "Notes", "Is Favorite", "Groups"]
             if header != expected_columns:
                 print(f"❌ CSV header mismatch. Expected: {expected_columns}, Got: {header}")
                 return False
