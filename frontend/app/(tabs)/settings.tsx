@@ -220,6 +220,15 @@ export default function SettingsScreen() {
         {/* Support Section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>SUPPORT</Text>
+          <View style={[styles.settingsCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            <SettingItem
+              icon="mail-outline"
+              title="Contact Developer"
+              subtitle="Send feedback or suggestions"
+              onPress={handleContactDeveloper}
+            />
+          </View>
+          <View style={{ height: 12 }} />
           <TouchableOpacity
             style={[styles.donateCard, { backgroundColor: theme.primary }]}
             onPress={handleSupportCrypTags}
