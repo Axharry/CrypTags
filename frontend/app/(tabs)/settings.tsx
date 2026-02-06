@@ -49,6 +49,21 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleContactDeveloper = () => {
+    const email = 'xolariacorporation@gmail.com';
+    const subject = encodeURIComponent('CrypTags Feedback');
+    const body = encodeURIComponent('Feedback / suggestion / improvement idea:\n\n');
+    const mailtoUrl = `mailto:${email}?subject=${subject}&body=${body}`;
+    
+    Linking.openURL(mailtoUrl).catch(() => {
+      Alert.alert(
+        'Unable to Open Email',
+        'Please send your feedback to xolariacorporation@gmail.com',
+        [{ text: 'OK' }]
+      );
+    });
+  };
+
   const handleExport = async (format: 'json' | 'csv') => {
     setExporting(true);
     try {
