@@ -212,6 +212,29 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Support Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>SUPPORT</Text>
+          <TouchableOpacity
+            style={[styles.donateCard, { backgroundColor: theme.primary }]}
+            onPress={handleSupportCrypTags}
+            activeOpacity={0.8}
+          >
+            <View style={styles.donateContent}>
+              <View style={styles.donateIconContainer}>
+                <Ionicons name="heart" size={28} color="#FFFFFF" />
+              </View>
+              <View style={styles.donateTextContainer}>
+                <Text style={styles.donateTitle}>Support CrypTags</Text>
+                <Text style={styles.donateSubtitle}>
+                  Support the development through crypto donations
+                </Text>
+              </View>
+              <Ionicons name="open-outline" size={20} color="#FFFFFF" />
+            </View>
+          </TouchableOpacity>
+        </View>
+
         {/* Sign Out */}
         <View style={styles.section}>
           <View style={[styles.settingsCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
