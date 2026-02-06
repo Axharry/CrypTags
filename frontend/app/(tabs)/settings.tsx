@@ -10,7 +10,7 @@ import {
   Platform,
   Linking,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
@@ -27,6 +27,7 @@ export default function SettingsScreen() {
   const { isDark, mode, setMode } = useThemeStore();
   const { user, logout } = useAuthStore();
   const theme = getTheme(isDark);
+  const insets = useSafeAreaInsets();
   const [exporting, setExporting] = useState(false);
 
   const handleThemeChange = async (newMode: ThemeMode) => {
