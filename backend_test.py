@@ -30,6 +30,7 @@ class CrypTagsAPITester:
         }
         self.created_contacts = []
         self.created_cryptos = []
+        self.created_groups = []
 
     def set_auth(self, token):
         """Set authentication token for requests"""
