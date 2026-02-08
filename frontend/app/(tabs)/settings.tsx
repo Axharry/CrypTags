@@ -9,6 +9,7 @@ import {
   Share,
   Platform,
   Linking,
+  Modal,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -23,12 +24,26 @@ const DONATION_URL = 'https://coindrop.to/xolaria';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
+// Supported languages
+const LANGUAGES = [
+  { code: 'en', name: 'English', nativeName: 'English' },
+  { code: 'id', name: 'Indonesian', nativeName: 'Bahasa Indonesia' },
+  { code: 'ms', name: 'Malay', nativeName: 'Bahasa Melayu' },
+  { code: 'ar', name: 'Arabic', nativeName: 'العربية' },
+  { code: 'ko', name: 'Korean', nativeName: '한국어' },
+  { code: 'ja', name: 'Japanese', nativeName: '日本語' },
+  { code: 'zh', name: 'Chinese', nativeName: '中文' },
+  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
+];
+
 export default function SettingsScreen() {
   const { isDark, mode, setMode } = useThemeStore();
   const { user, logout } = useAuthStore();
   const theme = getTheme(isDark);
   const insets = useSafeAreaInsets();
   const [exporting, setExporting] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   const handleThemeChange = async (newMode: ThemeMode) => {
     await setMode(newMode);
@@ -37,14 +52,11 @@ export default function SettingsScreen() {
   const handleSupportCrypTags = async () => {
     try {
       if (Platform.OS === 'web') {
-        // Open in new tab for web
         window.open(DONATION_URL, '_blank');
       } else {
-        // Use WebBrowser for native apps
         await WebBrowser.openBrowserAsync(DONATION_URL);
       }
     } catch (error) {
-      // Fallback to Linking
       Linking.openURL(DONATION_URL);
     }
   };
@@ -62,6 +74,26 @@ export default function SettingsScreen() {
         [{ text: 'OK' }]
       );
     });
+  };
+
+  const handleShareApp = async () => {
+    const shareMessage = 'Check out CrypTags - the best crypto address book! Manage all your crypto contacts in one place. Download now!';
+    
+    try {
+      await Share.share({
+        message: shareMessage,
+        title: 'Share CrypTags',
+      });
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
+  const handleLanguageChange = (langCode: string) => {
+    setSelectedLanguage(langCode);
+    setShowLanguageModal(false);
+    // Language change would be applied here with i18n
+    Alert.alert('Language Changed', `Language set to ${LANGUAGES.find(l => l.code === langCode)?.name}. Full translation support coming soon!`);
   };
 
   const handleExport = async (format: 'json' | 'csv') => {
