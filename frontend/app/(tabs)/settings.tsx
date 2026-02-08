@@ -287,6 +287,12 @@ export default function SettingsScreen() {
               subtitle="Send feedback or suggestions"
               onPress={handleContactDeveloper}
             />
+            <SettingItem
+              icon="share-social-outline"
+              title="Share App"
+              subtitle="Share CrypTags with friends"
+              onPress={handleShareApp}
+            />
           </View>
           <View style={{ height: 12 }} />
           <TouchableOpacity
@@ -325,6 +331,48 @@ export default function SettingsScreen() {
           CrypTags v1.0.0
         </Text>
       </ScrollView>
+
+      {/* Language Selection Modal */}
+      <Modal
+        visible={showLanguageModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowLanguageModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: theme.card, paddingBottom: Math.max(insets.bottom, 24) }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>Select Language</Text>
+              <TouchableOpacity onPress={() => setShowLanguageModal(false)}>
+                <Ionicons name="close" size={24} color={theme.text} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.languageList}>
+              {LANGUAGES.map((lang) => (
+                <TouchableOpacity
+                  key={lang.code}
+                  style={[
+                    styles.languageItem,
+                    { 
+                      backgroundColor: selectedLanguage === lang.code ? theme.primary + '20' : 'transparent',
+                      borderBottomColor: theme.border 
+                    }
+                  ]}
+                  onPress={() => handleLanguageChange(lang.code)}
+                >
+                  <View>
+                    <Text style={[styles.languageName, { color: theme.text }]}>{lang.name}</Text>
+                    <Text style={[styles.languageNative, { color: theme.textSecondary }]}>{lang.nativeName}</Text>
+                  </View>
+                  {selectedLanguage === lang.code && (
+                    <Ionicons name="checkmark-circle" size={24} color={theme.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
