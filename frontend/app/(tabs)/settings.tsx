@@ -232,6 +232,19 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Language Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>LANGUAGE</Text>
+          <View style={[styles.settingsCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            <SettingItem
+              icon="language-outline"
+              title="Language"
+              subtitle={LANGUAGES.find(l => l.code === selectedLanguage)?.nativeName || 'English'}
+              onPress={() => setShowLanguageModal(true)}
+            />
+          </View>
+        </View>
+
         {/* Crypto Management */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>CRYPTO</Text>
