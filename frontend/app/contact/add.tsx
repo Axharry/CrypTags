@@ -10,12 +10,12 @@ import {
   Platform,
   Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useThemeStore, getTheme } from '../../stores/themeStore';
-import { contactsAPI, cryptosAPI, CryptoAddress, DefaultCrypto, CustomCrypto } from '../../services/api';
+import { contactsAPI, cryptosAPI, groupsAPI, CryptoAddress, DefaultCrypto, CustomCrypto, Group } from '../../services/api';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { validateCryptoAddress } from '../../utils/validation';
@@ -45,17 +45,21 @@ export default function AddContactScreen() {
   const params = useLocalSearchParams<{ scannedAddress?: string; scannedType?: string }>();
   const isDark = useThemeStore((state) => state.isDark);
   const theme = getTheme(isDark);
+  const insets = useSafeAreaInsets();
 
   const [name, setName] = useState('');
   const [notes, setNotes] = useState('');
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [addresses, setAddresses] = useState<CryptoAddress[]>([]);
   const [cryptos, setCryptos] = useState<(DefaultCrypto | CustomCrypto)[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [showCryptoSelector, setShowCryptoSelector] = useState(false);
+  const [showGroupSelector, setShowGroupSelector] = useState(false);
 
   useEffect(() => {
-    loadCryptos();
+    loadData();
   }, []);
 
   useEffect(() => {
