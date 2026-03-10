@@ -49,12 +49,12 @@ export default function GroupDetailScreen() {
 
   const fetchData = async () => {
     try {
-      const [groupRes, contactsRes] = await Promise.all([
+      const [groupData, contactsData] = await Promise.all([
         groupsStorage.getOne(id!),
         contactsStorage.search({ group_id: id }),
       ]);
-      setGroup(groupRes.data);
-      setContacts(contactsRes.data);
+      setGroup(groupData);
+      setContacts(contactsData);
     } catch (error) {
       Alert.alert('Error', 'Failed to load group');
       router.back();

@@ -15,7 +15,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useThemeStore, getTheme } from '../../../stores/themeStore';
-import { contactsAPI, cryptosAPI, Contact, CryptoAddress, DefaultCrypto, CustomCrypto } from '../../../services/api';
+import { Contact, CryptoAddress, DefaultCrypto, CustomCrypto, Group } from '../../../types';
+import { contactsStorage, cryptosStorage, groupsStorage } from '../../../services/localStorage';
 import { Input } from '../../../components/Input';
 import { Button } from '../../../components/Button';
 import { validateCryptoAddress } from '../../../utils/validation';
@@ -61,20 +62,21 @@ export default function EditContactScreen() {
 
   const loadData = async () => {
     try {
-      const [contactRes, cryptosRes] = await Promise.all([
+      const [contact, cryptosResult] = await Promise.all([
         contactsStorage.getOne(id!),
         cryptosStorage.getAll(),
       ]);
       
-      const contact = contactRes.data;
-      setName(contact.name);
-      setNotes(contact.notes || '');
-      setProfilePicture(contact.profile_picture || null);
-      setAddresses(contact.crypto_addresses);
+      if (contact) {
+        setName(contact.name);
+        setNotes(contact.notes || '');
+        setProfilePicture(contact.profile_picture || null);
+        setAddresses(contact.crypto_addresses);
+      }
       
       setCryptos([
-        ...cryptosRes.data.default_cryptos,
-        ...cryptosRes.data.custom_cryptos,
+        ...cryptosResult.default_cryptos,
+        ...cryptosResult.custom_cryptos,
       ]);
     } catch (error) {
       Alert.alert('Error', 'Failed to load contact');
@@ -166,14 +168,14 @@ export default function EditContactScreen() {
     try {
       await contactsStorage.update(id!, {
         name: name.trim(),
-        notes: notes.trim() || null,
-        profile_picture: profilePicture,
+        notes: notes.trim() || undefined,
+        profile_picture: profilePicture || undefined,
         crypto_addresses: addresses,
       });
       router.back();
     } catch (error: any) {
-      const message = error.response?.data?.detail || 'Failed to update contact';
-      Alert.alert('Error', message);
+      Alert.alert('Error', 'Failed to update contact');
+      console.error('Update contact error:', error);
     } finally {
       setLoading(false);
     }

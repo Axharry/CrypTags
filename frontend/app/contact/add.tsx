@@ -59,33 +59,35 @@ export default function AddContactScreen() {
   const [showCryptoSelector, setShowCryptoSelector] = useState(false);
   const [showGroupSelector, setShowGroupSelector] = useState(false);
 
+  const loadData = async () => {
+    try {
+      const [cryptosResult, groupsResult] = await Promise.all([
+        cryptosStorage.getAll(),
+        groupsStorage.getAll(),
+      ]);
+      setCryptos([...cryptosResult.default_cryptos, ...cryptosResult.custom_cryptos]);
+      setGroups(groupsResult);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  };
+
   useEffect(() => {
     loadData();
   }, []);
 
   useEffect(() => {
     // If coming from QR scan, add the scanned address
-    if (params.scannedAddress) {
-      setAddresses([{
+    if (params.scannedAddress && params.scannedAddress !== 'undefined') {
+      const scannedAddr: CryptoAddress = {
         id: uuid.v4() as string,
         crypto_type: params.scannedType || 'ETH',
         address: params.scannedAddress,
         label: 'Scanned address',
-      }]);
+      };
+      setAddresses([scannedAddr]);
     }
   }, [params.scannedAddress]);
-
-  const loadCryptos = async () => {
-    try {
-      const result = await cryptosStorage.getAll();
-      setCryptos([
-        ...result.default_cryptos,
-        ...result.custom_cryptos,
-      ]);
-    } catch (error) {
-      console.error('Error loading cryptos:', error);
-    }
-  };
 
   const handlePickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -173,11 +175,12 @@ export default function AddContactScreen() {
         profile_picture: profilePicture || undefined,
         crypto_addresses: addresses,
         is_favorite: false,
+        group_ids: selectedGroupIds,
       });
       router.back();
     } catch (error: any) {
-      const message = error.response?.data?.detail || 'Failed to create contact';
-      Alert.alert('Error', message);
+      Alert.alert('Error', 'Failed to create contact');
+      console.error('Create contact error:', error);
     } finally {
       setLoading(false);
     }
