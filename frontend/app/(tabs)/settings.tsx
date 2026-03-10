@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,9 +16,11 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
+import { useTranslation } from 'react-i18next';
 import { useThemeStore, getTheme } from '../../stores/themeStore';
 import { exportStorage } from '../../services/localStorage';
 import * as Clipboard from 'expo-clipboard';
+import { changeLanguage, getCurrentLanguage } from '../../config/i18n';
 
 const DONATION_URL = 'https://coindrop.to/xolaria';
 
@@ -37,6 +39,13 @@ export default function SettingsScreen() {
   const [exporting, setExporting] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    // Load current language
+    const currentLang = getCurrentLanguage();
+    setSelectedLanguage(currentLang);
+  }, []);
 
   const handleThemeChange = async (newMode: ThemeMode) => {
     await setMode(newMode);
@@ -82,11 +91,19 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleLanguageChange = (langCode: string) => {
-    setSelectedLanguage(langCode);
-    setShowLanguageModal(false);
-    // Language change would be applied here with i18n
-    Alert.alert('Language Changed', `Language set to ${LANGUAGES.find(l => l.code === langCode)?.name}. Full translation support coming soon!`);
+  const handleLanguageChange = async (langCode: string) => {
+    try {
+      await changeLanguage(langCode);
+      setSelectedLanguage(langCode);
+      setShowLanguageModal(false);
+      const langName = LANGUAGES.find(l => l.code === langCode)?.name;
+      Alert.alert(
+        t('settings.languageChanged'),
+        `${t('settings.languageSetTo')} ${langName}`
+      );
+    } catch (error) {
+      Alert.alert(t('alerts.error'), 'Failed to change language');
+    }
   };
 
   const handleExport = async (format: 'json' | 'csv') => {
