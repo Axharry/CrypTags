@@ -28,12 +28,6 @@ type ThemeMode = 'light' | 'dark' | 'system';
 const LANGUAGES = [
   { code: 'en', name: 'English', nativeName: 'English' },
   { code: 'id', name: 'Indonesian', nativeName: 'Bahasa Indonesia' },
-  { code: 'ms', name: 'Malay', nativeName: 'Bahasa Melayu' },
-  { code: 'ar', name: 'Arabic', nativeName: 'العربية' },
-  { code: 'ko', name: 'Korean', nativeName: '한국어' },
-  { code: 'ja', name: 'Japanese', nativeName: '日本語' },
-  { code: 'zh', name: 'Chinese', nativeName: '中文' },
-  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
 ];
 
 export default function SettingsScreen() {
