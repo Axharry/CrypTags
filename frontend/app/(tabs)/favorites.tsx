@@ -28,7 +28,7 @@ export default function FavoritesScreen() {
   const fetchFavorites = async () => {
     try {
       const results = await contactsStorage.search({ favorites_only: true });
-      setFavorites(result);
+      setFavorites(results);
     } catch (error) {
       console.error('Error fetching favorites:', error);
     } finally {

@@ -13,7 +13,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeStore, getTheme } from '../stores/themeStore';
-import { contactsAPI, Contact } from '../services/api';
+import { Contact } from '../types';
+import { contactsStorage } from '../services/localStorage';
 import { Button } from '../components/Button';
 
 const DEFAULT_AVATARS = [
