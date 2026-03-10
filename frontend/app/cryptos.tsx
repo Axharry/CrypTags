@@ -37,9 +37,9 @@ export default function CryptosScreen() {
 
   const loadCryptos = async () => {
     try {
-      const response = await cryptosAPI.getAll();
-      setDefaultCryptos(response.data.default_cryptos);
-      setCustomCryptos(response.data.custom_cryptos);
+      const result = await cryptosStorage.getAll();
+      setDefaultCryptos(result.default_cryptos);
+      setCustomCryptos(result.custom_cryptos);
     } catch (error) {
       Alert.alert('Error', 'Failed to load cryptocurrencies');
     } finally {
@@ -55,7 +55,7 @@ export default function CryptosScreen() {
 
     setSaving(true);
     try {
-      await cryptosAPI.create({
+      await cryptosStorage.create({
         name: newName.trim(),
         symbol: newSymbol.trim().toUpperCase(),
         address_regex: newRegex.trim() || undefined,
@@ -84,7 +84,7 @@ export default function CryptosScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await cryptosAPI.delete(crypto.id);
+              await cryptosStorage.delete(crypto.id);
               loadCryptos();
             } catch (error) {
               Alert.alert('Error', 'Failed to delete cryptocurrency');

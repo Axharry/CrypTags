@@ -18,7 +18,8 @@ import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useThemeStore, getTheme } from '../../stores/themeStore';
-import { groupsAPI, Group } from '../../services/api';
+import { groupsAPI, Group } from '../../types'
+import { contactsStorage, groupsStorage, cryptosStorage, exportStorage } from '../../services/localStorage';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 
@@ -56,8 +57,8 @@ export default function GroupsScreen() {
 
   const fetchGroups = async () => {
     try {
-      const response = await groupsAPI.getAll();
-      setGroups(response.data);
+      const result = await groupsStorage.getAll();
+      setGroups(result);
     } catch (error) {
       console.error('Error fetching groups:', error);
     } finally {
@@ -106,7 +107,7 @@ export default function GroupsScreen() {
 
     setSaving(true);
     try {
-      await groupsAPI.create({
+      await groupsStorage.create({
         name: newName.trim(),
         description: newDescription.trim() || undefined,
         image: newImage || undefined,
@@ -134,7 +135,7 @@ export default function GroupsScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await groupsAPI.delete(group.id);
+              await groupsStorage.delete(group.id);
               fetchGroups();
             } catch (error) {
               Alert.alert('Error', 'Failed to delete group');

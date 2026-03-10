@@ -14,7 +14,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeStore, getTheme } from '../../stores/themeStore';
-import { groupsAPI, contactsAPI, Group, Contact } from '../../services/api';
+import { groupsAPI, contactsAPI, Group, Contact } from '../../types'
+import { contactsStorage, groupsStorage, cryptosStorage, exportStorage } from '../../services/localStorage';
 import { ContactCard } from '../../components/ContactCard';
 
 const DEFAULT_COLORS = [
@@ -49,8 +50,8 @@ export default function GroupDetailScreen() {
   const fetchData = async () => {
     try {
       const [groupRes, contactsRes] = await Promise.all([
-        groupsAPI.getOne(id!),
-        contactsAPI.getAll({ group_id: id }),
+        groupsStorage.getOne(id!),
+        contactsStorage.search({ group_id: id }),
       ]);
       setGroup(groupRes.data);
       setContacts(contactsRes.data);
@@ -76,7 +77,7 @@ export default function GroupDetailScreen() {
 
   const handleToggleFavorite = async (contact: Contact) => {
     try {
-      await contactsAPI.toggleFavorite(contact.id);
+      await contactsStorage.toggleFavorite(contact.id);
       fetchData();
     } catch (error) {
       Alert.alert('Error', 'Failed to update favorite status');
@@ -94,7 +95,7 @@ export default function GroupDetailScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await groupsAPI.removeContact(id!, contact.id);
+              await groupsStorage.removeContact(id!, contact.id);
               fetchData();
             } catch (error) {
               Alert.alert('Error', 'Failed to remove contact from group');

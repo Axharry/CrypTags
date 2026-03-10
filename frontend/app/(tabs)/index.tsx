@@ -15,7 +15,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeStore, getTheme } from '../../stores/themeStore';
-import { contactsAPI, cryptosAPI, Contact, SortOption, DefaultCrypto, CustomCrypto } from '../../services/api';
+import { Contact, SortOption, DefaultCrypto, CustomCrypto } from '../../types';
+import { contactsStorage, cryptosStorage } from '../../services/localStorage';
 import { ContactCard } from '../../components/ContactCard';
 import { Input } from '../../components/Input';
 
@@ -44,12 +45,12 @@ export default function ContactsScreen() {
 
   const fetchContacts = async () => {
     try {
-      const response = await contactsAPI.getAll({ 
+      const results = await contactsStorage.search({ 
         search: search || undefined,
         sort_by: sortBy,
         crypto_type: filterCrypto || undefined,
       });
-      setContacts(response.data);
+      setContacts(results);
     } catch (error) {
       console.error('Error fetching contacts:', error);
     } finally {
@@ -60,8 +61,8 @@ export default function ContactsScreen() {
 
   const fetchCryptos = async () => {
     try {
-      const response = await cryptosAPI.getAll();
-      setCryptos([...response.data.default_cryptos, ...response.data.custom_cryptos]);
+      const result = await cryptosStorage.getAll();
+      setCryptos([...result.default_cryptos, ...result.custom_cryptos]);
     } catch (error) {
       console.error('Error fetching cryptos:', error);
     }
@@ -81,7 +82,7 @@ export default function ContactsScreen() {
 
   const handleToggleFavorite = async (contact: Contact) => {
     try {
-      await contactsAPI.toggleFavorite(contact.id);
+      await contactsStorage.toggleFavorite(contact.id);
       fetchContacts();
     } catch (error) {
       Alert.alert('Error', 'Failed to update favorite status');

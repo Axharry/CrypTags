@@ -15,7 +15,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useThemeStore, getTheme } from '../../stores/themeStore';
-import { contactsAPI, cryptosAPI, groupsAPI, CryptoAddress, DefaultCrypto, CustomCrypto, Group } from '../../services/api';
+import { contactsAPI, cryptosAPI, groupsAPI, CryptoAddress, DefaultCrypto, CustomCrypto, Group } from '../../types'
+import { contactsStorage, groupsStorage, cryptosStorage, exportStorage } from '../../services/localStorage';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { validateCryptoAddress } from '../../utils/validation';
@@ -76,10 +77,10 @@ export default function AddContactScreen() {
 
   const loadCryptos = async () => {
     try {
-      const response = await cryptosAPI.getAll();
+      const result = await cryptosStorage.getAll();
       setCryptos([
-        ...response.data.default_cryptos,
-        ...response.data.custom_cryptos,
+        ...result.default_cryptos,
+        ...result.custom_cryptos,
       ]);
     } catch (error) {
       console.error('Error loading cryptos:', error);
@@ -166,7 +167,7 @@ export default function AddContactScreen() {
 
     setLoading(true);
     try {
-      await contactsAPI.create({
+      await contactsStorage.create({
         name: name.trim(),
         notes: notes.trim() || undefined,
         profile_picture: profilePicture || undefined,

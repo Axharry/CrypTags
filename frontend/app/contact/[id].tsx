@@ -15,7 +15,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import { useThemeStore, getTheme } from '../../stores/themeStore';
-import { contactsAPI, Contact, CryptoAddress } from '../../services/api';
+import { contactsAPI, Contact, CryptoAddress } from '../../types'
+import { contactsStorage, groupsStorage, cryptosStorage, exportStorage } from '../../services/localStorage';
 import { CryptoAddressItem } from '../../components/CryptoAddressItem';
 import { Button } from '../../components/Button';
 import * as Clipboard from 'expo-clipboard';
@@ -55,8 +56,8 @@ export default function ContactDetailScreen() {
 
   const fetchContact = async () => {
     try {
-      const response = await contactsAPI.getOne(id!);
-      setContact(response.data);
+      const result = await contactsStorage.getOne(id!);
+      setContact(result);
     } catch (error) {
       Alert.alert('Error', 'Failed to load contact');
       router.back();
@@ -68,7 +69,7 @@ export default function ContactDetailScreen() {
   const handleToggleFavorite = async () => {
     if (!contact) return;
     try {
-      await contactsAPI.toggleFavorite(contact.id);
+      await contactsStorage.toggleFavorite(contact.id);
       fetchContact();
     } catch (error) {
       Alert.alert('Error', 'Failed to update favorite status');
@@ -86,7 +87,7 @@ export default function ContactDetailScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await contactsAPI.delete(id!);
+              await contactsStorage.delete(id!);
               router.back();
             } catch (error) {
               Alert.alert('Error', 'Failed to delete contact');

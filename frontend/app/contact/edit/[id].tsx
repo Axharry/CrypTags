@@ -62,8 +62,8 @@ export default function EditContactScreen() {
   const loadData = async () => {
     try {
       const [contactRes, cryptosRes] = await Promise.all([
-        contactsAPI.getOne(id!),
-        cryptosAPI.getAll(),
+        contactsStorage.getOne(id!),
+        cryptosStorage.getAll(),
       ]);
       
       const contact = contactRes.data;
@@ -164,7 +164,7 @@ export default function EditContactScreen() {
 
     setLoading(true);
     try {
-      await contactsAPI.update(id!, {
+      await contactsStorage.update(id!, {
         name: name.trim(),
         notes: notes.trim() || null,
         profile_picture: profilePicture,

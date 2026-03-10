@@ -12,7 +12,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeStore, getTheme } from '../../stores/themeStore';
-import { contactsAPI, Contact } from '../../services/api';
+import { contactsAPI, Contact } from '../../types'
+import { contactsStorage, groupsStorage, cryptosStorage, exportStorage } from '../../services/localStorage';
 import { ContactCard } from '../../components/ContactCard';
 
 export default function FavoritesScreen() {
@@ -26,8 +27,8 @@ export default function FavoritesScreen() {
 
   const fetchFavorites = async () => {
     try {
-      const response = await contactsAPI.getAll({ favorites_only: true });
-      setFavorites(response.data);
+      const results = await contactsStorage.search({ favorites_only: true });
+      setFavorites(result);
     } catch (error) {
       console.error('Error fetching favorites:', error);
     } finally {
@@ -49,7 +50,7 @@ export default function FavoritesScreen() {
 
   const handleToggleFavorite = async (contact: Contact) => {
     try {
-      await contactsAPI.toggleFavorite(contact.id);
+      await contactsStorage.toggleFavorite(contact.id);
       fetchFavorites();
     } catch (error) {
       Alert.alert('Error', 'Failed to update favorite status');

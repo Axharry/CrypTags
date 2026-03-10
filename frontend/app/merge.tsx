@@ -54,8 +54,8 @@ export default function MergeScreen() {
 
   const fetchContacts = async () => {
     try {
-      const response = await contactsAPI.getAll();
-      setContacts(response.data);
+      const results = await contactsStorage.search();
+      setContacts(results);
     } catch (error) {
       Alert.alert('Error', 'Failed to load contacts');
     } finally {
@@ -107,7 +107,7 @@ export default function MergeScreen() {
     
     setMerging(true);
     try {
-      await contactsAPI.merge({
+      await contactsStorage.merge({
         primary_contact_id: primaryId,
         source_contact_ids: sourceIds,
         delete_source_contacts: true,

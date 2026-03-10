@@ -11,13 +11,13 @@ import {
   Linking,
   Modal,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import { useThemeStore, getTheme } from '../../stores/themeStore';
-import { useAuthStore } from '../../stores/authStore';
-import { exportAPI } from '../../services/api';
+import { exportStorage } from '../../services/localStorage';
 import * as Clipboard from 'expo-clipboard';
 
 const DONATION_URL = 'https://coindrop.to/xolaria';
@@ -38,7 +38,6 @@ const LANGUAGES = [
 
 export default function SettingsScreen() {
   const { isDark, mode, setMode } = useThemeStore();
-  const { user, logout } = useAuthStore();
   const theme = getTheme(isDark);
   const insets = useSafeAreaInsets();
   const [exporting, setExporting] = useState(false);
@@ -100,12 +99,12 @@ export default function SettingsScreen() {
     setExporting(true);
     try {
       const response = format === 'json'
-        ? await exportAPI.exportJSON()
-        : await exportAPI.exportCSV();
+        ? await exportStorage.exportJSON()
+        : await exportStorage.exportCSV();
 
       const content = format === 'json'
-        ? JSON.stringify(response.data, null, 2)
-        : response.data.csv_content;
+        ? JSON.stringify(result, null, 2)
+        : result.csv_content;
 
       if (Platform.OS === 'web') {
         await Clipboard.setStringAsync(content);
@@ -123,18 +122,22 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleLogout = () => {
+  const handleClearAllData = () => {
     Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
+      'Clear All Data',
+      'Are you sure you want to delete all contacts, groups, and settings? This action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Sign Out',
+          text: 'Clear All',
           style: 'destructive',
           onPress: async () => {
-            await logout();
-            router.replace('/(auth)/login');
+            try {
+              await AsyncStorage.clear();
+              Alert.alert('Success', 'All data has been cleared');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to clear data');
+            }
           },
         },
       ]
@@ -206,17 +209,16 @@ export default function SettingsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) + 60 }}
       >
-        {/* Profile Section */}
+        {/* App Info Banner */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>ACCOUNT</Text>
-          <View style={[styles.profileCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <View style={[styles.profileCard, { backgroundColor: theme.primary + '15', borderColor: theme.primary + '30' }]}>
             <View style={[styles.profileAvatar, { backgroundColor: theme.primary }]}>
-              <Ionicons name="person" size={28} color="#FFFFFF" />
+              <Ionicons name="shield-checkmark" size={28} color="#FFFFFF" />
             </View>
             <View style={styles.profileInfo}>
-              <Text style={[styles.profileName, { color: theme.text }]}>{user?.name}</Text>
+              <Text style={[styles.profileName, { color: theme.text }]}>Privacy First</Text>
               <Text style={[styles.profileEmail, { color: theme.textSecondary }]}>
-                {user?.email}
+                All data stored locally on your device
               </Text>
             </View>
           </View>
@@ -315,20 +317,22 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Sign Out */}
+        {/* Data Management */}
         <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>DATA</Text>
           <View style={[styles.settingsCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
             <SettingItem
-              icon="log-out-outline"
-              title="Sign Out"
-              onPress={handleLogout}
+              icon="trash-outline"
+              title="Clear All Data"
+              subtitle="Delete all contacts and settings"
+              onPress={handleClearAllData}
               danger
             />
           </View>
         </View>
 
         <Text style={[styles.version, { color: theme.textSecondary }]}>
-          CrypTags v1.0.0
+          CrypTags v2.0.0 (Offline)
         </Text>
       </ScrollView>
 
