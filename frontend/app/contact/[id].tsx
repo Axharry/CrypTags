@@ -15,8 +15,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import { useThemeStore, getTheme } from '../../stores/themeStore';
-import { contactsAPI, Contact, CryptoAddress } from '../../types'
-import { contactsStorage, groupsStorage, cryptosStorage, exportStorage } from '../../services/localStorage';
+import { Contact, CryptoAddress, Group } from '../../types';
+import { contactsStorage, groupsStorage } from '../../services/localStorage';
 import { CryptoAddressItem } from '../../components/CryptoAddressItem';
 import { Button } from '../../components/Button';
 import * as Clipboard from 'expo-clipboard';
@@ -49,9 +49,12 @@ export default function ContactDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [qrModalVisible, setQrModalVisible] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<CryptoAddress | null>(null);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [showGroupSelector, setShowGroupSelector] = useState(false);
 
   useEffect(() => {
     fetchContact();
+    fetchGroups();
   }, [id]);
 
   const fetchContact = async () => {
@@ -63,6 +66,15 @@ export default function ContactDetailScreen() {
       router.back();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchGroups = async () => {
+    try {
+      const result = await groupsStorage.getAll();
+      setGroups(result);
+    } catch (error) {
+      console.error('Error fetching groups:', error);
     }
   };
 
@@ -105,6 +117,29 @@ export default function ContactDetailScreen() {
 
   const handleCopyAddress = () => {
     Alert.alert('Copied', 'Address copied to clipboard');
+  };
+
+  const handleToggleGroup = async (groupId: string) => {
+    if (!contact) return;
+    const currentGroups = contact.group_ids || [];
+    const isInGroup = currentGroups.includes(groupId);
+
+    try {
+      if (isInGroup) {
+        await groupsStorage.removeContact(groupId, contact.id);
+      } else {
+        await groupsStorage.addContact(groupId, contact.id);
+      }
+      await fetchContact();
+      await fetchGroups();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update groups');
+    }
+  };
+
+  const getContactGroups = () => {
+    if (!contact || !contact.group_ids) return [];
+    return groups.filter(g => contact.group_ids.includes(g.id));
   };
 
   if (loading) {
@@ -191,6 +226,40 @@ export default function ContactDetailScreen() {
           )}
         </View>
 
+        {/* Groups Section */}
+        <View style={styles.addressesSection}>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+            GROUPS ({getContactGroups().length})
+          </Text>
+          <View style={styles.groupsContainer}>
+            {getContactGroups().map((group) => (
+              <TouchableOpacity
+                key={group.id}
+                style={[styles.groupChip, { backgroundColor: theme.primary + '15', borderColor: theme.primary + '30' }]}
+                onPress={() => router.push(`/group/${group.id}`)}
+              >
+                <Text style={[styles.groupChipText, { color: theme.primary }]}>{group.name}</Text>
+                <TouchableOpacity
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    handleToggleGroup(group.id);
+                  }}
+                  style={styles.removeGroupButton}
+                >
+                  <Ionicons name="close-circle" size={18} color={theme.primary} />
+                </TouchableOpacity>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={[styles.addGroupChip, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={() => setShowGroupSelector(true)}
+            >
+              <Ionicons name="add" size={20} color={theme.primary} />
+              <Text style={[styles.addGroupText, { color: theme.primary }]}>Add to Group</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         <View style={styles.editButtonContainer}>
           <Button
             title="Edit Contact"
@@ -200,6 +269,53 @@ export default function ContactDetailScreen() {
           />
         </View>
       </ScrollView>
+
+      {/* Group Selector Modal */}
+      <Modal
+        visible={showGroupSelector}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowGroupSelector(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.groupSelectorModal, { backgroundColor: theme.card }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>Select Groups</Text>
+              <TouchableOpacity onPress={() => setShowGroupSelector(false)}>
+                <Ionicons name="close" size={24} color={theme.text} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.groupsList}>
+              {groups.map((group) => {
+                const isSelected = contact?.group_ids?.includes(group.id);
+                return (
+                  <TouchableOpacity
+                    key={group.id}
+                    style={[styles.groupItem, { borderBottomColor: theme.border }]}
+                    onPress={() => handleToggleGroup(group.id)}
+                  >
+                    <Text style={[styles.groupItemText, { color: theme.text }]}>{group.name}</Text>
+                    <View style={[
+                      styles.checkbox,
+                      {
+                        backgroundColor: isSelected ? theme.primary : 'transparent',
+                        borderColor: isSelected ? theme.primary : theme.border,
+                      }
+                    ]}>
+                      {isSelected && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+              {groups.length === 0 && (
+                <Text style={[styles.emptyGroupsText, { color: theme.textSecondary }]}>
+                  No groups available. Create one from the Groups tab.
+                </Text>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       {/* QR Code Modal */}
       <Modal
@@ -345,12 +461,93 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 32,
   },
+  groupsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  groupChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    gap: 6,
+  },
+  groupChipText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  removeGroupButton: {
+    marginLeft: 2,
+  },
+  addGroupChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    gap: 4,
+  },
+  addGroupText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
+  },
+  groupSelectorModal: {
+    width: '90%',
+    maxWidth: 400,
+    maxHeight: '70%',
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  groupsList: {
+    maxHeight: 400,
+  },
+  groupItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+  },
+  groupItemText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyGroupsText: {
+    padding: 20,
+    textAlign: 'center',
+    fontSize: 14,
   },
   modalContent: {
     width: '100%',
@@ -367,11 +564,6 @@ const styles = StyleSheet.create({
     height: 32,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 4,
   },
   modalLabel: {
     fontSize: 14,

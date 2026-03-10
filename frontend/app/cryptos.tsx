@@ -14,7 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeStore, getTheme } from '../stores/themeStore';
-import { cryptosAPI, CustomCrypto, DefaultCrypto } from '../services/api';
+import { CustomCrypto, DefaultCrypto } from '../types';
+import { cryptosStorage } from '../services/localStorage';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 

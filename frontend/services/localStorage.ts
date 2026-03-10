@@ -102,7 +102,7 @@ export const contactsStorage = {
     return this.update(id, { is_favorite: !contact.is_favorite });
   },
 
-  async search(query: {
+  async search(query?: {
     search?: string;
     crypto_type?: string;
     favorites_only?: boolean;
@@ -110,6 +110,11 @@ export const contactsStorage = {
     sort_by?: string;
   }): Promise<Contact[]> {
     let contacts = await this.getAll();
+
+    // If no query provided, return all contacts
+    if (!query) {
+      return contacts;
+    }
 
     // Filter by favorites
     if (query.favorites_only) {
