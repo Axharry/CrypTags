@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -16,9 +16,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
-import { useTranslation } from 'react-i18next';
 import { useThemeStore, getTheme } from '../../stores/themeStore';
-import { useLanguageStore, LANGUAGES } from '../../stores/languageStore';
 import { exportStorage } from '../../services/localStorage';
 import * as Clipboard from 'expo-clipboard';
 
@@ -28,12 +26,9 @@ type ThemeMode = 'light' | 'dark' | 'system';
 
 export default function SettingsScreen() {
   const { isDark, mode, setMode } = useThemeStore();
-  const { language, changeLanguage: changeLang } = useLanguageStore();
   const theme = getTheme(isDark);
   const insets = useSafeAreaInsets();
   const [exporting, setExporting] = useState(false);
-  const [showLanguageModal, setShowLanguageModal] = useState(false);
-  const { t, i18n } = useTranslation();
 
   const handleThemeChange = async (newMode: ThemeMode) => {
     await setMode(newMode);
@@ -76,20 +71,6 @@ export default function SettingsScreen() {
       });
     } catch (error) {
       console.error('Error sharing:', error);
-    }
-  };
-
-  const handleLanguageChange = async (langCode: string) => {
-    try {
-      await changeLang(langCode as 'en' | 'id');
-      setShowLanguageModal(false);
-      const langName = LANGUAGES.find(l => l.code === langCode)?.name;
-      Alert.alert(
-        t('settings.languageChanged'),
-        `${t('settings.languageSetTo')} ${langName}`
-      );
-    } catch (error) {
-      Alert.alert(t('alerts.error'), 'Failed to change language');
     }
   };
 
@@ -232,19 +213,6 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Language Section */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>LANGUAGE</Text>
-          <View style={[styles.settingsCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-            <SettingItem
-              icon="language-outline"
-              title="Language"
-              subtitle={LANGUAGES.find(l => l.code === language)?.nativeName || 'English'}
-              onPress={() => setShowLanguageModal(true)}
-            />
-          </View>
-        </View>
-
         {/* Crypto Management */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>CRYPTO</Text>
@@ -333,48 +301,6 @@ export default function SettingsScreen() {
           CrypTags v2.0.0 (Offline)
         </Text>
       </ScrollView>
-
-      {/* Language Selection Modal */}
-      <Modal
-        visible={showLanguageModal}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setShowLanguageModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: theme.card, paddingBottom: Math.max(insets.bottom, 24) }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>Select Language</Text>
-              <TouchableOpacity onPress={() => setShowLanguageModal(false)}>
-                <Ionicons name="close" size={24} color={theme.text} />
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.languageList}>
-              {LANGUAGES.map((lang) => (
-                <TouchableOpacity
-                  key={lang.code}
-                  style={[
-                    styles.languageItem,
-                    { 
-                      backgroundColor: language === lang.code ? theme.primary + '20' : 'transparent',
-                      borderBottomColor: theme.border 
-                    }
-                  ]}
-                  onPress={() => handleLanguageChange(lang.code)}
-                >
-                  <View>
-                    <Text style={[styles.languageName, { color: theme.text }]}>{lang.name}</Text>
-                    <Text style={[styles.languageNative, { color: theme.textSecondary }]}>{lang.nativeName}</Text>
-                  </View>
-                  {language === lang.code && (
-                    <Ionicons name="checkmark-circle" size={24} color={theme.primary} />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
