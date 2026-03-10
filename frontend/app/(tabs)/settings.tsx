@@ -29,6 +29,7 @@ export default function SettingsScreen() {
   const theme = getTheme(isDark);
   const insets = useSafeAreaInsets();
   const [exporting, setExporting] = useState(false);
+  const [showDeveloperMemo, setShowDeveloperMemo] = useState(false);
 
   const handleThemeChange = async (newMode: ThemeMode) => {
     await setMode(newMode);
@@ -261,6 +262,12 @@ export default function SettingsScreen() {
               subtitle="Share CrypTags with friends"
               onPress={handleShareApp}
             />
+            <SettingItem
+              icon="document-text-outline"
+              title="Developer Memo"
+              subtitle="A message from the creator"
+              onPress={() => setShowDeveloperMemo(true)}
+            />
           </View>
           <View style={{ height: 12 }} />
           <TouchableOpacity
@@ -301,6 +308,58 @@ export default function SettingsScreen() {
           CrypTags v2.0.0 (Offline)
         </Text>
       </ScrollView>
+
+      {/* Developer Memo Modal */}
+      <Modal
+        visible={showDeveloperMemo}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowDeveloperMemo(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.memoModal, { backgroundColor: theme.card }]}>
+            <View style={styles.memoHeader}>
+              <View style={styles.memoHeaderContent}>
+                <Ionicons name="heart-circle" size={32} color={theme.primary} />
+                <Text style={[styles.memoTitle, { color: theme.text }]}>Developer Memo</Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowDeveloperMemo(false)}>
+                <Ionicons name="close-circle" size={28} color={theme.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView 
+              style={styles.memoContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <Text style={[styles.memoText, { color: theme.text }]}>
+                Currently (2026), I am <Text style={{ fontWeight: '700', color: theme.primary }}>Azhar</Text>, a management student with a strong fascination for studying crypto and Web3, driven by the belief that the future will be heavily disrupted by these technologies.
+              </Text>
+              
+              <Text style={[styles.memoText, { color: theme.text, marginTop: 16 }]}>
+                I have a vision of building a company/startup that focuses intensively on the development of blockchain and cryptography, ultimately evolving into a technology conglomerate capable of turning hundreds of bold and unconventional ideas into reality, ideas that have the potential to reshape the world.
+              </Text>
+              
+              <Text style={[styles.memoText, { color: theme.text, marginTop: 16 }]}>
+                I draw a great deal of inspiration from a young man with glasses, a crypto figure who is quite well known in my country. His journey motivates me to create meaningful impact and contribute value to society.
+              </Text>
+              
+              <View style={[styles.memoFooter, { backgroundColor: theme.primary + '15', borderColor: theme.primary + '30' }]}>
+                <Text style={[styles.memoFooterText, { color: theme.primary }]}>
+                  I firmly believe that I will make it happen. 💪
+                </Text>
+              </View>
+            </ScrollView>
+            
+            <TouchableOpacity
+              style={[styles.memoCloseButton, { backgroundColor: theme.primary }]}
+              onPress={() => setShowDeveloperMemo(false)}
+            >
+              <Text style={styles.memoCloseButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -486,5 +545,61 @@ const styles = StyleSheet.create({
   languageNative: {
     fontSize: 13,
     marginTop: 2,
+  },
+  // Developer Memo Modal Styles
+  memoModal: {
+    width: '90%',
+    maxWidth: 500,
+    maxHeight: '80%',
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  memoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  memoHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  memoTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  memoContent: {
+    padding: 24,
+    maxHeight: 500,
+  },
+  memoText: {
+    fontSize: 16,
+    lineHeight: 26,
+    textAlign: 'justify',
+  },
+  memoFooter: {
+    marginTop: 24,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  memoFooterText: {
+    fontSize: 16,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  memoCloseButton: {
+    margin: 20,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  memoCloseButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
