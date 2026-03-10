@@ -18,34 +18,22 @@ import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import { useTranslation } from 'react-i18next';
 import { useThemeStore, getTheme } from '../../stores/themeStore';
+import { useLanguageStore, LANGUAGES } from '../../stores/languageStore';
 import { exportStorage } from '../../services/localStorage';
 import * as Clipboard from 'expo-clipboard';
-import { changeLanguage, getCurrentLanguage } from '../../config/i18n';
 
 const DONATION_URL = 'https://coindrop.to/xolaria';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
-// Supported languages
-const LANGUAGES = [
-  { code: 'en', name: 'English', nativeName: 'English' },
-  { code: 'id', name: 'Indonesian', nativeName: 'Bahasa Indonesia' },
-];
-
 export default function SettingsScreen() {
   const { isDark, mode, setMode } = useThemeStore();
+  const { language, changeLanguage: changeLang } = useLanguageStore();
   const theme = getTheme(isDark);
   const insets = useSafeAreaInsets();
   const [exporting, setExporting] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [showLanguageModal, setShowLanguageModal] = useState(false);
-  const { t } = useTranslation();
-
-  useEffect(() => {
-    // Load current language
-    const currentLang = getCurrentLanguage();
-    setSelectedLanguage(currentLang);
-  }, []);
+  const { t, i18n } = useTranslation();
 
   const handleThemeChange = async (newMode: ThemeMode) => {
     await setMode(newMode);
@@ -93,8 +81,7 @@ export default function SettingsScreen() {
 
   const handleLanguageChange = async (langCode: string) => {
     try {
-      await changeLanguage(langCode);
-      setSelectedLanguage(langCode);
+      await changeLang(langCode as 'en' | 'id');
       setShowLanguageModal(false);
       const langName = LANGUAGES.find(l => l.code === langCode)?.name;
       Alert.alert(
@@ -252,7 +239,7 @@ export default function SettingsScreen() {
             <SettingItem
               icon="language-outline"
               title="Language"
-              subtitle={LANGUAGES.find(l => l.code === selectedLanguage)?.nativeName || 'English'}
+              subtitle={LANGUAGES.find(l => l.code === language)?.nativeName || 'English'}
               onPress={() => setShowLanguageModal(true)}
             />
           </View>
@@ -369,7 +356,7 @@ export default function SettingsScreen() {
                   style={[
                     styles.languageItem,
                     { 
-                      backgroundColor: selectedLanguage === lang.code ? theme.primary + '20' : 'transparent',
+                      backgroundColor: language === lang.code ? theme.primary + '20' : 'transparent',
                       borderBottomColor: theme.border 
                     }
                   ]}
@@ -379,7 +366,7 @@ export default function SettingsScreen() {
                     <Text style={[styles.languageName, { color: theme.text }]}>{lang.name}</Text>
                     <Text style={[styles.languageNative, { color: theme.textSecondary }]}>{lang.nativeName}</Text>
                   </View>
-                  {selectedLanguage === lang.code && (
+                  {language === lang.code && (
                     <Ionicons name="checkmark-circle" size={24} color={theme.primary} />
                   )}
                 </TouchableOpacity>
