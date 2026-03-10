@@ -19,7 +19,7 @@ import io
 
 
 class CrypTagsAPITester:
-    def __init__(self, base_url="https://crypto-contacts-1.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://code-preview-120.preview.emergentagent.com/api"):
         self.base_url = base_url.rstrip('/')
         self.session = requests.Session()
         self.auth_token = None
