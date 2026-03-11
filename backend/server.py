@@ -23,7 +23,9 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ.get('DB_NAME', 'cryptags_db')]
 
 # JWT Configuration
-SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'cryptags-secret-key-change-in-production-2025')
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+if not SECRET_KEY:
+    SECRET_KEY = 'cryptags-dev-secret-key-2025'  # Only used in development
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_DAYS = 7
 
@@ -550,33 +552,62 @@ async def merge_contacts(
 
 @api_router.get("/groups", response_model=List[GroupResponse])
 async def get_groups(current_user: dict = Depends(get_current_user)):
-    """Get all groups for the current user with contact counts"""
-    groups = await db.groups.find({"user_id": current_user["id"]}).sort("name", 1).to_list(100)
+    """Get all groups for the current user with contact counts using aggregation"""
+    # Use aggregation pipeline to get contact counts in a single query
+    pipeline = [
+        {"$match": {"user_id": current_user["id"]}},
+        {"$lookup": {
+            "from": "contacts",
+            "let": {"group_id": "$id"},
+            "pipeline": [
+                {"$match": {
+                    "$expr": {
+                        "$and": [
+                            {"$eq": ["$user_id", current_user["id"]]},
+                            {"$in": ["$$group_id", {"$ifNull": ["$group_ids", []]}]}
+                        ]
+                    }
+                }}
+            ],
+            "as": "matched_contacts"
+        }},
+        {"$addFields": {"contact_count": {"$size": "$matched_contacts"}}},
+        {"$project": {"matched_contacts": 0}},
+        {"$sort": {"name": 1}}
+    ]
     
-    result = []
-    for group in groups:
-        # Count contacts in this group
-        contact_count = await db.contacts.count_documents({
-            "user_id": current_user["id"],
-            "group_ids": group["id"]
-        })
-        group["contact_count"] = contact_count
-        result.append(GroupResponse(**group))
-    
-    return result
+    groups = await db.groups.aggregate(pipeline).to_list(100)
+    return [GroupResponse(**group) for group in groups]
 
 @api_router.get("/groups/{group_id}", response_model=GroupResponse)
 async def get_group(group_id: str, current_user: dict = Depends(get_current_user)):
-    group = await db.groups.find_one({"id": group_id, "user_id": current_user["id"]})
-    if not group:
+    """Get a single group with contact count using aggregation"""
+    pipeline = [
+        {"$match": {"id": group_id, "user_id": current_user["id"]}},
+        {"$lookup": {
+            "from": "contacts",
+            "let": {"group_id": "$id"},
+            "pipeline": [
+                {"$match": {
+                    "$expr": {
+                        "$and": [
+                            {"$eq": ["$user_id", current_user["id"]]},
+                            {"$in": ["$$group_id", {"$ifNull": ["$group_ids", []]}]}
+                        ]
+                    }
+                }}
+            ],
+            "as": "matched_contacts"
+        }},
+        {"$addFields": {"contact_count": {"$size": "$matched_contacts"}}},
+        {"$project": {"matched_contacts": 0}}
+    ]
+    
+    groups = await db.groups.aggregate(pipeline).to_list(1)
+    if not groups:
         raise HTTPException(status_code=404, detail="Group not found")
     
-    contact_count = await db.contacts.count_documents({
-        "user_id": current_user["id"],
-        "group_ids": group_id
-    })
-    group["contact_count"] = contact_count
-    return GroupResponse(**group)
+    return GroupResponse(**groups[0])
 
 @api_router.post("/groups", response_model=GroupResponse)
 async def create_group(group_data: GroupCreate, current_user: dict = Depends(get_current_user)):
