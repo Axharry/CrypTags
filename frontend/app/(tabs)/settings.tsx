@@ -83,8 +83,8 @@ export default function SettingsScreen() {
         : await exportStorage.exportCSV();
 
       const content = format === 'json'
-        ? JSON.stringify(result, null, 2)
-        : result.csv_content;
+        ? JSON.stringify(response, null, 2)
+        : (response as { csv_content: string }).csv_content;
 
       if (Platform.OS === 'web') {
         await Clipboard.setStringAsync(content);
@@ -96,6 +96,7 @@ export default function SettingsScreen() {
         });
       }
     } catch (error) {
+      console.error('Export error:', error);
       Alert.alert('Error', 'Failed to export data');
     } finally {
       setExporting(false);
@@ -344,11 +345,6 @@ export default function SettingsScreen() {
                 I draw a great deal of inspiration from a young man with glasses, a crypto figure who is quite well known in my country. His journey motivates me to create meaningful impact and contribute value to society.
               </Text>
               
-              <View style={[styles.memoFooter, { backgroundColor: theme.primary + '15', borderColor: theme.primary + '30' }]}>
-                <Text style={[styles.memoFooterText, { color: theme.primary }]}>
-                  I firmly believe that I will make it happen. 💪
-                </Text>
-              </View>
             </ScrollView>
             
             <TouchableOpacity
