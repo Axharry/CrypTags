@@ -831,7 +831,7 @@ async def validate_address(
 
 @api_router.get("/")
 async def root():
-    return {"message": "CrypTags API is running", "version": "1.1.0"}
+    return {"message": "CrypTags API is running", "version": "2.1.1"}
 
 @api_router.get("/health")
 async def health_check():
