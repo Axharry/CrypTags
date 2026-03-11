@@ -81,3 +81,7 @@ android-sdk/
 
 # Note: .env files are NOT ignored - they are required for deployment
 # The deployment system will inject production values
+-e 
+# Environment files
+*.env
+*.env.*
