@@ -333,7 +333,7 @@ export default function SettingsScreen() {
               showsVerticalScrollIndicator={false}
             >
               <Text style={[styles.memoText, { color: theme.text }]}>
-                Currently (2026), I am <Text style={{ fontWeight: '700', color: theme.primary }}>Azhar</Text>, a management student with a strong fascination for studying crypto and Web3, driven by the belief that the future will be heavily disrupted by these technologies.
+                Currently (2026), I am <Text style={{ fontWeight: '700', color: theme.primary }}>Axharry</Text>, a management student with a strong fascination for studying crypto and Web3, driven by the belief that the future will be heavily disrupted by these technologies.
               </Text>
               
               <Text style={[styles.memoText, { color: theme.text, marginTop: 16 }]}>
