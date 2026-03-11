@@ -345,6 +345,10 @@ export default function SettingsScreen() {
                 I draw a great deal of inspiration from a young man with glasses, a crypto figure who is quite well known in my country. His journey motivates me to create meaningful impact and contribute value to society.
               </Text>
               
+              <Text style={[styles.memoEmoji, { marginTop: 32 }]}>
+                😜😜😜
+              </Text>
+              
             </ScrollView>
             
             <TouchableOpacity
@@ -575,6 +579,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 26,
     textAlign: 'justify',
+  },
+  memoEmoji: {
+    fontSize: 24,
+    textAlign: 'center',
   },
   memoFooter: {
     marginTop: 24,
