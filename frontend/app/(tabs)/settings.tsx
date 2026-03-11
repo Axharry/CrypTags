@@ -341,12 +341,8 @@ export default function SettingsScreen() {
                 I have a vision of building a company/startup that focuses intensively on the development of blockchain and cryptography, ultimately evolving into a technology conglomerate capable of turning hundreds of bold and unconventional ideas into reality, ideas that have the potential to reshape the world.
               </Text>
               
-              <Text style={[styles.memoText, { color: theme.text, marginTop: 16 }]}>
+              <Text style={[styles.memoText, { color: theme.text, marginTop: 16, marginBottom: 96 }]}>
                 I draw a great deal of inspiration from a young man with glasses, a crypto figure who is quite well known in my country. His journey motivates me to create meaningful impact and contribute value to society.
-              </Text>
-              
-              <Text style={[styles.memoEmoji, { marginTop: 32 }]}>
-                😜😜😜
               </Text>
               
             </ScrollView>
