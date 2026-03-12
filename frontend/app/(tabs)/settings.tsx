@@ -305,7 +305,7 @@ export default function SettingsScreen() {
         </View>
 
         <Text style={[styles.version, { color: theme.textSecondary }]}>
-          CrypTags v2.0.0 (Offline)
+          CrypTags v2.0.1 (Offline)
         </Text>
       </ScrollView>
 
