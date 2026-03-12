@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Appearance } from 'react-native';
+import { Appearance, Platform } from 'react-native';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -12,6 +11,46 @@ interface ThemeState {
 }
 
 const THEME_KEY = 'cryptags_theme';
+
+// Check if running on web
+const isWeb = Platform.OS === 'web' || typeof document !== 'undefined';
+
+// Simple storage helper for theme
+const themeStorage = {
+  async getItem(key: string): Promise<string | null> {
+    if (isWeb || typeof localStorage !== 'undefined') {
+      try {
+        return localStorage.getItem(key);
+      } catch (e) {
+        return null;
+      }
+    }
+    // For native, try AsyncStorage dynamically
+    try {
+      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+      return await AsyncStorage.getItem(key);
+    } catch (e) {
+      return null;
+    }
+  },
+  async setItem(key: string, value: string): Promise<void> {
+    if (isWeb || typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem(key, value);
+        return;
+      } catch (e) {
+        // ignore
+      }
+    }
+    // For native, try AsyncStorage dynamically
+    try {
+      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+      await AsyncStorage.setItem(key, value);
+    } catch (e) {
+      // ignore
+    }
+  }
+};
 
 const getEffectiveTheme = (mode: ThemeMode): boolean => {
   if (mode === 'system') {
@@ -25,13 +64,13 @@ export const useThemeStore = create<ThemeState>((set) => ({
   isDark: Appearance.getColorScheme() === 'dark',
 
   setMode: async (mode: ThemeMode) => {
-    await AsyncStorage.setItem(THEME_KEY, mode);
+    await themeStorage.setItem(THEME_KEY, mode);
     set({ mode, isDark: getEffectiveTheme(mode) });
   },
 
   loadTheme: async () => {
     try {
-      const stored = await AsyncStorage.getItem(THEME_KEY);
+      const stored = await themeStorage.getItem(THEME_KEY);
       const mode = (stored as ThemeMode) || 'system';
       set({ mode, isDark: getEffectiveTheme(mode) });
     } catch (error) {

@@ -14,26 +14,196 @@ const KEYS = {
   THEME: 'cryptags_theme',
 };
 
-// Storage utility (SecureStore for native, AsyncStorage for web)
-const storage = {
+// Check if running on web
+const isWeb = Platform.OS === 'web' || typeof document !== 'undefined';
+
+// Cross-platform storage wrapper
+const crossPlatformStorage = {
   async getItem(key: string): Promise<string | null> {
-    if (Platform.OS === 'web') {
-      return AsyncStorage.getItem(key);
+    // Always try localStorage first on web
+    if (isWeb) {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          return localStorage.getItem(key);
+        }
+      } catch (e) {
+        console.warn('localStorage not available:', e);
+      }
+      return null;
     }
-    return SecureStore.getItemAsync(key);
+    // Use AsyncStorage for native platforms
+    try {
+      return await AsyncStorage.getItem(key);
+    } catch (e) {
+      console.warn('AsyncStorage error:', e);
+      // Fallback to localStorage if AsyncStorage fails (e.g., in web environment)
+      try {
+        if (typeof localStorage !== 'undefined') {
+          return localStorage.getItem(key);
+        }
+      } catch (err) {
+        // ignore
+      }
+      return null;
+    }
   },
   async setItem(key: string, value: string): Promise<void> {
-    if (Platform.OS === 'web') {
+    if (isWeb) {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(key, value);
+        }
+      } catch (e) {
+        console.warn('localStorage not available:', e);
+      }
+      return;
+    }
+    try {
       await AsyncStorage.setItem(key, value);
-    } else {
+    } catch (e) {
+      console.warn('AsyncStorage error:', e);
+      // Fallback to localStorage
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(key, value);
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+  },
+  async removeItem(key: string): Promise<void> {
+    if (isWeb) {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(key);
+        }
+      } catch (e) {
+        console.warn('localStorage not available:', e);
+      }
+      return;
+    }
+    try {
+      await AsyncStorage.removeItem(key);
+    } catch (e) {
+      console.warn('AsyncStorage error:', e);
+      // Fallback to localStorage
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(key);
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+  },
+  async clear(): Promise<void> {
+    if (isWeb) {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          // Only clear our app keys
+          Object.values(KEYS).forEach(key => {
+            localStorage.removeItem(key);
+          });
+        }
+      } catch (e) {
+        console.warn('localStorage not available:', e);
+      }
+      return;
+    }
+    try {
+      await AsyncStorage.clear();
+    } catch (e) {
+      console.warn('AsyncStorage error:', e);
+      // Fallback to localStorage
+      try {
+        if (typeof localStorage !== 'undefined') {
+          Object.values(KEYS).forEach(key => {
+            localStorage.removeItem(key);
+          });
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+  }
+};
+
+// Secure storage utility (SecureStore for native, localStorage for web)
+const secureStorage = {
+  async getItem(key: string): Promise<string | null> {
+    if (isWeb) {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          return localStorage.getItem(key);
+        }
+      } catch (e) {
+        return null;
+      }
+      return null;
+    }
+    try {
+      return await SecureStore.getItemAsync(key);
+    } catch (e) {
+      // Fallback to localStorage
+      try {
+        if (typeof localStorage !== 'undefined') {
+          return localStorage.getItem(key);
+        }
+      } catch (err) {
+        // ignore
+      }
+      return null;
+    }
+  },
+  async setItem(key: string, value: string): Promise<void> {
+    if (isWeb) {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(key, value);
+        }
+      } catch (e) {
+        console.warn('localStorage not available:', e);
+      }
+      return;
+    }
+    try {
       await SecureStore.setItemAsync(key, value);
+    } catch (e) {
+      console.warn('SecureStore error:', e);
+      // Fallback to localStorage
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(key, value);
+        }
+      } catch (err) {
+        // ignore
+      }
     }
   },
   async deleteItem(key: string): Promise<void> {
-    if (Platform.OS === 'web') {
-      await AsyncStorage.removeItem(key);
-    } else {
+    if (isWeb) {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(key);
+        }
+      } catch (e) {
+        console.warn('localStorage not available:', e);
+      }
+      return;
+    }
+    try {
       await SecureStore.deleteItemAsync(key);
+    } catch (e) {
+      console.warn('SecureStore error:', e);
+      // Fallback to localStorage
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(key);
+        }
+      } catch (err) {
+        // ignore
+      }
     }
   }
 };
@@ -45,7 +215,7 @@ const storage = {
 export const contactsStorage = {
   async getAll(): Promise<Contact[]> {
     try {
-      const data = await AsyncStorage.getItem(KEYS.CONTACTS);
+      const data = await crossPlatformStorage.getItem(KEYS.CONTACTS);
       return data ? JSON.parse(data) : [];
     } catch (error) {
       console.error('Error loading contacts:', error);
@@ -67,7 +237,7 @@ export const contactsStorage = {
       updated_at: new Date().toISOString(),
     };
     contacts.push(newContact);
-    await AsyncStorage.setItem(KEYS.CONTACTS, JSON.stringify(contacts));
+    await crossPlatformStorage.setItem(KEYS.CONTACTS, JSON.stringify(contacts));
     return newContact;
   },
 
@@ -84,7 +254,7 @@ export const contactsStorage = {
       updated_at: new Date().toISOString(),
     };
 
-    await AsyncStorage.setItem(KEYS.CONTACTS, JSON.stringify(contacts));
+    await crossPlatformStorage.setItem(KEYS.CONTACTS, JSON.stringify(contacts));
     return contacts[index];
   },
 
@@ -92,7 +262,7 @@ export const contactsStorage = {
     const contacts = await this.getAll();
     const filtered = contacts.filter(c => c.id !== id);
     if (filtered.length === contacts.length) return false;
-    await AsyncStorage.setItem(KEYS.CONTACTS, JSON.stringify(filtered));
+    await crossPlatformStorage.setItem(KEYS.CONTACTS, JSON.stringify(filtered));
     return true;
   },
 
@@ -241,7 +411,7 @@ export const contactsStorage = {
 export const groupsStorage = {
   async getAll(): Promise<Group[]> {
     try {
-      const data = await AsyncStorage.getItem(KEYS.GROUPS);
+      const data = await crossPlatformStorage.getItem(KEYS.GROUPS);
       const groups: Group[] = data ? JSON.parse(data) : [];
       
       // Calculate contact counts
@@ -262,7 +432,7 @@ export const groupsStorage = {
   },
 
   async create(group: { name: string; description?: string; image?: string }): Promise<Group> {
-    const groups = await AsyncStorage.getItem(KEYS.GROUPS);
+    const groups = await crossPlatformStorage.getItem(KEYS.GROUPS);
     const groupsList: Group[] = groups ? JSON.parse(groups) : [];
     
     const newGroup: Group = {
@@ -275,12 +445,12 @@ export const groupsStorage = {
     };
     
     groupsList.push(newGroup);
-    await AsyncStorage.setItem(KEYS.GROUPS, JSON.stringify(groupsList));
+    await crossPlatformStorage.setItem(KEYS.GROUPS, JSON.stringify(groupsList));
     return newGroup;
   },
 
   async update(id: string, updates: Partial<Group>): Promise<Group | null> {
-    const groups = await AsyncStorage.getItem(KEYS.GROUPS);
+    const groups = await crossPlatformStorage.getItem(KEYS.GROUPS);
     const groupsList: Group[] = groups ? JSON.parse(groups) : [];
     const index = groupsList.findIndex(g => g.id === id);
     
@@ -294,12 +464,12 @@ export const groupsStorage = {
       updated_at: new Date().toISOString(),
     };
 
-    await AsyncStorage.setItem(KEYS.GROUPS, JSON.stringify(groupsList));
+    await crossPlatformStorage.setItem(KEYS.GROUPS, JSON.stringify(groupsList));
     return groupsList[index];
   },
 
   async delete(id: string): Promise<boolean> {
-    const groups = await AsyncStorage.getItem(KEYS.GROUPS);
+    const groups = await crossPlatformStorage.getItem(KEYS.GROUPS);
     const groupsList: Group[] = groups ? JSON.parse(groups) : [];
     const filtered = groupsList.filter(g => g.id !== id);
     
@@ -315,7 +485,7 @@ export const groupsStorage = {
       }
     }
 
-    await AsyncStorage.setItem(KEYS.GROUPS, JSON.stringify(filtered));
+    await crossPlatformStorage.setItem(KEYS.GROUPS, JSON.stringify(filtered));
     return true;
   },
 
@@ -363,7 +533,7 @@ export const DEFAULT_CRYPTOS = [
 export const cryptosStorage = {
   async getAll(): Promise<{ default_cryptos: typeof DEFAULT_CRYPTOS; custom_cryptos: CustomCrypto[] }> {
     try {
-      const data = await AsyncStorage.getItem(KEYS.CUSTOM_CRYPTOS);
+      const data = await crossPlatformStorage.getItem(KEYS.CUSTOM_CRYPTOS);
       const custom_cryptos = data ? JSON.parse(data) : [];
       return {
         default_cryptos: DEFAULT_CRYPTOS,
@@ -376,7 +546,7 @@ export const cryptosStorage = {
   },
 
   async create(crypto: { name: string; symbol: string; address_regex?: string }): Promise<CustomCrypto> {
-    const data = await AsyncStorage.getItem(KEYS.CUSTOM_CRYPTOS);
+    const data = await crossPlatformStorage.getItem(KEYS.CUSTOM_CRYPTOS);
     const cryptos: CustomCrypto[] = data ? JSON.parse(data) : [];
 
     // Check for duplicates
@@ -398,17 +568,17 @@ export const cryptosStorage = {
     };
 
     cryptos.push(newCrypto);
-    await AsyncStorage.setItem(KEYS.CUSTOM_CRYPTOS, JSON.stringify(cryptos));
+    await crossPlatformStorage.setItem(KEYS.CUSTOM_CRYPTOS, JSON.stringify(cryptos));
     return newCrypto;
   },
 
   async delete(id: string): Promise<boolean> {
-    const data = await AsyncStorage.getItem(KEYS.CUSTOM_CRYPTOS);
+    const data = await crossPlatformStorage.getItem(KEYS.CUSTOM_CRYPTOS);
     const cryptos: CustomCrypto[] = data ? JSON.parse(data) : [];
     const filtered = cryptos.filter(c => c.id !== id);
     
     if (filtered.length === cryptos.length) return false;
-    await AsyncStorage.setItem(KEYS.CUSTOM_CRYPTOS, JSON.stringify(filtered));
+    await crossPlatformStorage.setItem(KEYS.CUSTOM_CRYPTOS, JSON.stringify(filtered));
     return true;
   },
 
