@@ -19,6 +19,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { useThemeStore, getTheme } from '../../stores/themeStore';
 import { exportStorage } from '../../services/localStorage';
 import * as Clipboard from 'expo-clipboard';
+import { Image } from 'expo-image';
 
 const DONATION_URL = 'https://coindrop.to/xolaria';
 
@@ -344,11 +345,15 @@ export default function SettingsScreen() {
                 I draw a great deal of inspiration from a young man with glasses, a crypto figure who is quite well known in my country. His journey motivates me to create meaningful impact and contribute value to society.
               </Text>
               
-              <View style={[styles.memoFooter, { backgroundColor: theme.primary + '15', borderColor: theme.primary + '30' }]}>
-                <Text style={[styles.memoFooterText, { color: theme.primary }]}>
-                  I firmly believe that I will make it happen. 💪
-                </Text>
+              <View style={{ height: 90 }} />
+              <View style={styles.memoLogoContainer}>
+                <Image 
+                  source={{ uri: 'https://customer-assets.emergentagent.com/job_repo-to-app-builder/artifacts/6q5n49xt_CT.png' }}
+                  style={styles.memoLogo}
+                  contentFit="contain"
+                />
               </View>
+              <View style={{ height: 90 }} />
             </ScrollView>
             
             <TouchableOpacity
@@ -507,7 +512,8 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContent: {
     borderTopLeftRadius: 24,
@@ -580,16 +586,14 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     textAlign: 'justify',
   },
-  memoFooter: {
-    marginTop: 24,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
+  memoLogoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  memoFooterText: {
-    fontSize: 16,
-    fontWeight: '700',
-    textAlign: 'center',
+  memoLogo: {
+    width: 120,
+    height: 120,
+    borderRadius: 24,
   },
   memoCloseButton: {
     margin: 20,
