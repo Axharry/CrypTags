@@ -1,53 +1,36 @@
 import { create } from 'zustand';
-import { Appearance, Platform } from 'react-native';
+import { Appearance } from 'react-native';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
 interface ThemeState {
   mode: ThemeMode;
   isDark: boolean;
-  setMode: (mode: ThemeMode) => Promise<void>;
-  loadTheme: () => Promise<void>;
+  setMode: (mode: ThemeMode) => void;
+  loadTheme: () => void;
 }
 
 const THEME_KEY = 'cryptags_theme';
 
-// Check if running on web
-const isWeb = Platform.OS === 'web' || typeof document !== 'undefined';
-
-// Simple storage helper for theme
+// Simple storage helper
 const themeStorage = {
-  async getItem(key: string): Promise<string | null> {
-    if (isWeb || typeof localStorage !== 'undefined') {
-      try {
-        return localStorage.getItem(key);
-      } catch (e) {
-        return null;
-      }
-    }
-    // For native, try AsyncStorage dynamically
+  getItem(key: string): string | null {
     try {
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-      return await AsyncStorage.getItem(key);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem(key);
+      }
     } catch (e) {
-      return null;
+      console.warn('Theme storage getItem error:', e);
     }
+    return null;
   },
-  async setItem(key: string, value: string): Promise<void> {
-    if (isWeb || typeof localStorage !== 'undefined') {
-      try {
-        localStorage.setItem(key, value);
-        return;
-      } catch (e) {
-        // ignore
-      }
-    }
-    // For native, try AsyncStorage dynamically
+  setItem(key: string, value: string): void {
     try {
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-      await AsyncStorage.setItem(key, value);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(key, value);
+      }
     } catch (e) {
-      // ignore
+      console.warn('Theme storage setItem error:', e);
     }
   }
 };
@@ -63,14 +46,14 @@ export const useThemeStore = create<ThemeState>((set) => ({
   mode: 'system',
   isDark: Appearance.getColorScheme() === 'dark',
 
-  setMode: async (mode: ThemeMode) => {
-    await themeStorage.setItem(THEME_KEY, mode);
+  setMode: (mode: ThemeMode) => {
+    themeStorage.setItem(THEME_KEY, mode);
     set({ mode, isDark: getEffectiveTheme(mode) });
   },
 
-  loadTheme: async () => {
+  loadTheme: () => {
     try {
-      const stored = await themeStorage.getItem(THEME_KEY);
+      const stored = themeStorage.getItem(THEME_KEY);
       const mode = (stored as ThemeMode) || 'system';
       set({ mode, isDark: getEffectiveTheme(mode) });
     } catch (error) {

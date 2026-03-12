@@ -1,5 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { Contact, Group, CustomCrypto, CryptoAddress } from '../types';
 
@@ -14,196 +12,45 @@ const KEYS = {
   THEME: 'cryptags_theme',
 };
 
-// Check if running on web
-const isWeb = Platform.OS === 'web' || typeof document !== 'undefined';
-
-// Cross-platform storage wrapper
-const crossPlatformStorage = {
-  async getItem(key: string): Promise<string | null> {
-    // Always try localStorage first on web
-    if (isWeb) {
-      try {
-        if (typeof localStorage !== 'undefined') {
-          return localStorage.getItem(key);
-        }
-      } catch (e) {
-        console.warn('localStorage not available:', e);
-      }
-      return null;
-    }
-    // Use AsyncStorage for native platforms
+// Simple localStorage wrapper that works on web
+const storage = {
+  getItem(key: string): string | null {
     try {
-      return await AsyncStorage.getItem(key);
-    } catch (e) {
-      console.warn('AsyncStorage error:', e);
-      // Fallback to localStorage if AsyncStorage fails (e.g., in web environment)
-      try {
-        if (typeof localStorage !== 'undefined') {
-          return localStorage.getItem(key);
-        }
-      } catch (err) {
-        // ignore
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem(key);
       }
-      return null;
+    } catch (e) {
+      console.warn('Storage getItem error:', e);
+    }
+    return null;
+  },
+  setItem(key: string, value: string): void {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(key, value);
+      }
+    } catch (e) {
+      console.warn('Storage setItem error:', e);
     }
   },
-  async setItem(key: string, value: string): Promise<void> {
-    if (isWeb) {
-      try {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem(key, value);
-        }
-      } catch (e) {
-        console.warn('localStorage not available:', e);
-      }
-      return;
-    }
+  removeItem(key: string): void {
     try {
-      await AsyncStorage.setItem(key, value);
-    } catch (e) {
-      console.warn('AsyncStorage error:', e);
-      // Fallback to localStorage
-      try {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem(key, value);
-        }
-      } catch (err) {
-        // ignore
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(key);
       }
+    } catch (e) {
+      console.warn('Storage removeItem error:', e);
     }
   },
-  async removeItem(key: string): Promise<void> {
-    if (isWeb) {
-      try {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.removeItem(key);
-        }
-      } catch (e) {
-        console.warn('localStorage not available:', e);
-      }
-      return;
-    }
+  clear(): void {
     try {
-      await AsyncStorage.removeItem(key);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        Object.values(KEYS).forEach(key => {
+          window.localStorage.removeItem(key);
+        });
+      }
     } catch (e) {
-      console.warn('AsyncStorage error:', e);
-      // Fallback to localStorage
-      try {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.removeItem(key);
-        }
-      } catch (err) {
-        // ignore
-      }
-    }
-  },
-  async clear(): Promise<void> {
-    if (isWeb) {
-      try {
-        if (typeof localStorage !== 'undefined') {
-          // Only clear our app keys
-          Object.values(KEYS).forEach(key => {
-            localStorage.removeItem(key);
-          });
-        }
-      } catch (e) {
-        console.warn('localStorage not available:', e);
-      }
-      return;
-    }
-    try {
-      await AsyncStorage.clear();
-    } catch (e) {
-      console.warn('AsyncStorage error:', e);
-      // Fallback to localStorage
-      try {
-        if (typeof localStorage !== 'undefined') {
-          Object.values(KEYS).forEach(key => {
-            localStorage.removeItem(key);
-          });
-        }
-      } catch (err) {
-        // ignore
-      }
-    }
-  }
-};
-
-// Secure storage utility (SecureStore for native, localStorage for web)
-const secureStorage = {
-  async getItem(key: string): Promise<string | null> {
-    if (isWeb) {
-      try {
-        if (typeof localStorage !== 'undefined') {
-          return localStorage.getItem(key);
-        }
-      } catch (e) {
-        return null;
-      }
-      return null;
-    }
-    try {
-      return await SecureStore.getItemAsync(key);
-    } catch (e) {
-      // Fallback to localStorage
-      try {
-        if (typeof localStorage !== 'undefined') {
-          return localStorage.getItem(key);
-        }
-      } catch (err) {
-        // ignore
-      }
-      return null;
-    }
-  },
-  async setItem(key: string, value: string): Promise<void> {
-    if (isWeb) {
-      try {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem(key, value);
-        }
-      } catch (e) {
-        console.warn('localStorage not available:', e);
-      }
-      return;
-    }
-    try {
-      await SecureStore.setItemAsync(key, value);
-    } catch (e) {
-      console.warn('SecureStore error:', e);
-      // Fallback to localStorage
-      try {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem(key, value);
-        }
-      } catch (err) {
-        // ignore
-      }
-    }
-  },
-  async deleteItem(key: string): Promise<void> {
-    if (isWeb) {
-      try {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.removeItem(key);
-        }
-      } catch (e) {
-        console.warn('localStorage not available:', e);
-      }
-      return;
-    }
-    try {
-      await SecureStore.deleteItemAsync(key);
-    } catch (e) {
-      console.warn('SecureStore error:', e);
-      // Fallback to localStorage
-      try {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.removeItem(key);
-        }
-      } catch (err) {
-        // ignore
-      }
+      console.warn('Storage clear error:', e);
     }
   }
 };
@@ -213,9 +60,9 @@ const secureStorage = {
 // =====================================
 
 export const contactsStorage = {
-  async getAll(): Promise<Contact[]> {
+  getAll(): Contact[] {
     try {
-      const data = await crossPlatformStorage.getItem(KEYS.CONTACTS);
+      const data = storage.getItem(KEYS.CONTACTS);
       return data ? JSON.parse(data) : [];
     } catch (error) {
       console.error('Error loading contacts:', error);
@@ -223,13 +70,13 @@ export const contactsStorage = {
     }
   },
 
-  async getOne(id: string): Promise<Contact | null> {
-    const contacts = await this.getAll();
+  getOne(id: string): Contact | null {
+    const contacts = this.getAll();
     return contacts.find(c => c.id === id) || null;
   },
 
-  async create(contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>): Promise<Contact> {
-    const contacts = await this.getAll();
+  create(contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>): Contact {
+    const contacts = this.getAll();
     const newContact: Contact = {
       ...contact,
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
@@ -237,51 +84,50 @@ export const contactsStorage = {
       updated_at: new Date().toISOString(),
     };
     contacts.push(newContact);
-    await crossPlatformStorage.setItem(KEYS.CONTACTS, JSON.stringify(contacts));
+    storage.setItem(KEYS.CONTACTS, JSON.stringify(contacts));
     return newContact;
   },
 
-  async update(id: string, updates: Partial<Contact>): Promise<Contact | null> {
-    const contacts = await this.getAll();
+  update(id: string, updates: Partial<Contact>): Contact | null {
+    const contacts = this.getAll();
     const index = contacts.findIndex(c => c.id === id);
     if (index === -1) return null;
 
     contacts[index] = {
       ...contacts[index],
       ...updates,
-      id: contacts[index].id, // Preserve ID
-      created_at: contacts[index].created_at, // Preserve created_at
+      id: contacts[index].id,
+      created_at: contacts[index].created_at,
       updated_at: new Date().toISOString(),
     };
 
-    await crossPlatformStorage.setItem(KEYS.CONTACTS, JSON.stringify(contacts));
+    storage.setItem(KEYS.CONTACTS, JSON.stringify(contacts));
     return contacts[index];
   },
 
-  async delete(id: string): Promise<boolean> {
-    const contacts = await this.getAll();
+  delete(id: string): boolean {
+    const contacts = this.getAll();
     const filtered = contacts.filter(c => c.id !== id);
     if (filtered.length === contacts.length) return false;
-    await crossPlatformStorage.setItem(KEYS.CONTACTS, JSON.stringify(filtered));
+    storage.setItem(KEYS.CONTACTS, JSON.stringify(filtered));
     return true;
   },
 
-  async toggleFavorite(id: string): Promise<Contact | null> {
-    const contact = await this.getOne(id);
+  toggleFavorite(id: string): Contact | null {
+    const contact = this.getOne(id);
     if (!contact) return null;
     return this.update(id, { is_favorite: !contact.is_favorite });
   },
 
-  async search(query?: {
+  search(query?: {
     search?: string;
     crypto_type?: string;
     favorites_only?: boolean;
     group_id?: string;
     sort_by?: string;
-  }): Promise<Contact[]> {
-    let contacts = await this.getAll();
+  }): Contact[] {
+    let contacts = this.getAll();
 
-    // If no query provided, return all contacts
     if (!query) {
       return contacts;
     }
@@ -342,12 +188,12 @@ export const contactsStorage = {
     return contacts;
   },
 
-  async merge(data: {
+  merge(data: {
     primary_contact_id: string;
     source_contact_ids: string[];
     delete_source_contacts?: boolean;
-  }): Promise<Contact | null> {
-    const contacts = await this.getAll();
+  }): Contact | null {
+    const contacts = this.getAll();
     const primary = contacts.find(c => c.id === data.primary_contact_id);
     if (!primary) return null;
 
@@ -364,7 +210,6 @@ export const contactsStorage = {
     const mergedGroupIds = new Set(primary.group_ids || []);
 
     sources.forEach(source => {
-      // Merge addresses
       source.crypto_addresses.forEach(addr => {
         const key = `${addr.crypto_type}:${addr.address}`;
         if (!existingAddresses.has(key)) {
@@ -377,17 +222,15 @@ export const contactsStorage = {
         }
       });
 
-      // Merge notes
       if (source.notes) {
         mergedNotesParts.push(`[From ${source.name}]: ${source.notes}`);
       }
 
-      // Merge groups
       source.group_ids?.forEach(gid => mergedGroupIds.add(gid));
     });
 
     // Update primary contact
-    const updatedPrimary = await this.update(data.primary_contact_id, {
+    const updatedPrimary = this.update(data.primary_contact_id, {
       crypto_addresses: mergedAddresses,
       notes: mergedNotesParts.filter(Boolean).join('\n') || undefined,
       group_ids: Array.from(mergedGroupIds),
@@ -396,7 +239,7 @@ export const contactsStorage = {
     // Delete source contacts if requested
     if (data.delete_source_contacts) {
       for (const sourceId of data.source_contact_ids) {
-        await this.delete(sourceId);
+        this.delete(sourceId);
       }
     }
 
@@ -409,13 +252,13 @@ export const contactsStorage = {
 // =====================================
 
 export const groupsStorage = {
-  async getAll(): Promise<Group[]> {
+  getAll(): Group[] {
     try {
-      const data = await crossPlatformStorage.getItem(KEYS.GROUPS);
+      const data = storage.getItem(KEYS.GROUPS);
       const groups: Group[] = data ? JSON.parse(data) : [];
       
       // Calculate contact counts
-      const contacts = await contactsStorage.getAll();
+      const contacts = contactsStorage.getAll();
       return groups.map(group => ({
         ...group,
         contact_count: contacts.filter(c => c.group_ids?.includes(group.id)).length,
@@ -426,14 +269,14 @@ export const groupsStorage = {
     }
   },
 
-  async getOne(id: string): Promise<Group | null> {
-    const groups = await this.getAll();
+  getOne(id: string): Group | null {
+    const groups = this.getAll();
     return groups.find(g => g.id === id) || null;
   },
 
-  async create(group: { name: string; description?: string; image?: string }): Promise<Group> {
-    const groups = await crossPlatformStorage.getItem(KEYS.GROUPS);
-    const groupsList: Group[] = groups ? JSON.parse(groups) : [];
+  create(group: { name: string; description?: string; image?: string }): Group {
+    const data = storage.getItem(KEYS.GROUPS);
+    const groupsList: Group[] = data ? JSON.parse(data) : [];
     
     const newGroup: Group = {
       ...group,
@@ -445,13 +288,13 @@ export const groupsStorage = {
     };
     
     groupsList.push(newGroup);
-    await crossPlatformStorage.setItem(KEYS.GROUPS, JSON.stringify(groupsList));
+    storage.setItem(KEYS.GROUPS, JSON.stringify(groupsList));
     return newGroup;
   },
 
-  async update(id: string, updates: Partial<Group>): Promise<Group | null> {
-    const groups = await crossPlatformStorage.getItem(KEYS.GROUPS);
-    const groupsList: Group[] = groups ? JSON.parse(groups) : [];
+  update(id: string, updates: Partial<Group>): Group | null {
+    const data = storage.getItem(KEYS.GROUPS);
+    const groupsList: Group[] = data ? JSON.parse(data) : [];
     const index = groupsList.findIndex(g => g.id === id);
     
     if (index === -1) return null;
@@ -464,49 +307,49 @@ export const groupsStorage = {
       updated_at: new Date().toISOString(),
     };
 
-    await crossPlatformStorage.setItem(KEYS.GROUPS, JSON.stringify(groupsList));
+    storage.setItem(KEYS.GROUPS, JSON.stringify(groupsList));
     return groupsList[index];
   },
 
-  async delete(id: string): Promise<boolean> {
-    const groups = await crossPlatformStorage.getItem(KEYS.GROUPS);
-    const groupsList: Group[] = groups ? JSON.parse(groups) : [];
+  delete(id: string): boolean {
+    const data = storage.getItem(KEYS.GROUPS);
+    const groupsList: Group[] = data ? JSON.parse(data) : [];
     const filtered = groupsList.filter(g => g.id !== id);
     
     if (filtered.length === groupsList.length) return false;
 
     // Remove group from all contacts
-    const contacts = await contactsStorage.getAll();
+    const contacts = contactsStorage.getAll();
     for (const contact of contacts) {
       if (contact.group_ids?.includes(id)) {
-        await contactsStorage.update(contact.id, {
+        contactsStorage.update(contact.id, {
           group_ids: contact.group_ids.filter(gid => gid !== id),
         });
       }
     }
 
-    await crossPlatformStorage.setItem(KEYS.GROUPS, JSON.stringify(filtered));
+    storage.setItem(KEYS.GROUPS, JSON.stringify(filtered));
     return true;
   },
 
-  async addContact(groupId: string, contactId: string): Promise<boolean> {
-    const contact = await contactsStorage.getOne(contactId);
+  addContact(groupId: string, contactId: string): boolean {
+    const contact = contactsStorage.getOne(contactId);
     if (!contact) return false;
 
     const groupIds = contact.group_ids || [];
     if (!groupIds.includes(groupId)) {
-      await contactsStorage.update(contactId, {
+      contactsStorage.update(contactId, {
         group_ids: [...groupIds, groupId],
       });
     }
     return true;
   },
 
-  async removeContact(groupId: string, contactId: string): Promise<boolean> {
-    const contact = await contactsStorage.getOne(contactId);
+  removeContact(groupId: string, contactId: string): boolean {
+    const contact = contactsStorage.getOne(contactId);
     if (!contact) return false;
 
-    await contactsStorage.update(contactId, {
+    contactsStorage.update(contactId, {
       group_ids: (contact.group_ids || []).filter(gid => gid !== groupId),
     });
     return true;
@@ -531,9 +374,9 @@ export const DEFAULT_CRYPTOS = [
 ];
 
 export const cryptosStorage = {
-  async getAll(): Promise<{ default_cryptos: typeof DEFAULT_CRYPTOS; custom_cryptos: CustomCrypto[] }> {
+  getAll(): { default_cryptos: typeof DEFAULT_CRYPTOS; custom_cryptos: CustomCrypto[] } {
     try {
-      const data = await crossPlatformStorage.getItem(KEYS.CUSTOM_CRYPTOS);
+      const data = storage.getItem(KEYS.CUSTOM_CRYPTOS);
       const custom_cryptos = data ? JSON.parse(data) : [];
       return {
         default_cryptos: DEFAULT_CRYPTOS,
@@ -545,8 +388,8 @@ export const cryptosStorage = {
     }
   },
 
-  async create(crypto: { name: string; symbol: string; address_regex?: string }): Promise<CustomCrypto> {
-    const data = await crossPlatformStorage.getItem(KEYS.CUSTOM_CRYPTOS);
+  create(crypto: { name: string; symbol: string; address_regex?: string }): CustomCrypto {
+    const data = storage.getItem(KEYS.CUSTOM_CRYPTOS);
     const cryptos: CustomCrypto[] = data ? JSON.parse(data) : [];
 
     // Check for duplicates
@@ -568,17 +411,17 @@ export const cryptosStorage = {
     };
 
     cryptos.push(newCrypto);
-    await crossPlatformStorage.setItem(KEYS.CUSTOM_CRYPTOS, JSON.stringify(cryptos));
+    storage.setItem(KEYS.CUSTOM_CRYPTOS, JSON.stringify(cryptos));
     return newCrypto;
   },
 
-  async delete(id: string): Promise<boolean> {
-    const data = await crossPlatformStorage.getItem(KEYS.CUSTOM_CRYPTOS);
+  delete(id: string): boolean {
+    const data = storage.getItem(KEYS.CUSTOM_CRYPTOS);
     const cryptos: CustomCrypto[] = data ? JSON.parse(data) : [];
     const filtered = cryptos.filter(c => c.id !== id);
     
     if (filtered.length === cryptos.length) return false;
-    await crossPlatformStorage.setItem(KEYS.CUSTOM_CRYPTOS, JSON.stringify(filtered));
+    storage.setItem(KEYS.CUSTOM_CRYPTOS, JSON.stringify(filtered));
     return true;
   },
 
@@ -602,9 +445,9 @@ export const cryptosStorage = {
 // =====================================
 
 export const exportStorage = {
-  async exportJSON(): Promise<{ contacts: Contact[]; groups: Group[]; exported_at: string }> {
-    const contacts = await contactsStorage.getAll();
-    const groups = await groupsStorage.getAll();
+  exportJSON(): { contacts: Contact[]; groups: Group[]; exported_at: string } {
+    const contacts = contactsStorage.getAll();
+    const groups = groupsStorage.getAll();
     
     return {
       contacts: contacts.map(c => ({
@@ -620,8 +463,8 @@ export const exportStorage = {
     };
   },
 
-  async exportCSV(): Promise<{ csv_content: string; exported_at: string }> {
-    const contacts = await contactsStorage.getAll();
+  exportCSV(): { csv_content: string; exported_at: string } {
+    const contacts = contactsStorage.getAll();
     const csvLines = ['Name,Crypto Type,Address,Label,Notes,Is Favorite,Groups'];
 
     for (const contact of contacts) {
@@ -650,34 +493,42 @@ export const exportStorage = {
 // =====================================
 
 export const appLockStorage = {
-  async isEnabled(): Promise<boolean> {
-    const enabled = await storage.getItem(KEYS.APP_LOCK_ENABLED);
+  isEnabled(): boolean {
+    const enabled = storage.getItem(KEYS.APP_LOCK_ENABLED);
     return enabled === 'true';
   },
 
-  async setEnabled(enabled: boolean): Promise<void> {
-    await storage.setItem(KEYS.APP_LOCK_ENABLED, enabled.toString());
+  setEnabled(enabled: boolean): void {
+    storage.setItem(KEYS.APP_LOCK_ENABLED, enabled.toString());
   },
 
-  async setPin(pin: string): Promise<void> {
-    await storage.setItem(KEYS.APP_LOCK_PIN, pin);
+  setPin(pin: string): void {
+    storage.setItem(KEYS.APP_LOCK_PIN, pin);
   },
 
-  async verifyPin(pin: string): Promise<boolean> {
-    const stored = await storage.getItem(KEYS.APP_LOCK_PIN);
+  verifyPin(pin: string): boolean {
+    const stored = storage.getItem(KEYS.APP_LOCK_PIN);
     return stored === pin;
   },
 
-  async clearPin(): Promise<void> {
-    await storage.deleteItem(KEYS.APP_LOCK_PIN);
+  clearPin(): void {
+    storage.removeItem(KEYS.APP_LOCK_PIN);
   },
 
-  async isBiometricEnabled(): Promise<boolean> {
-    const enabled = await storage.getItem(KEYS.BIOMETRIC_ENABLED);
+  isBiometricEnabled(): boolean {
+    const enabled = storage.getItem(KEYS.BIOMETRIC_ENABLED);
     return enabled === 'true';
   },
 
-  async setBiometricEnabled(enabled: boolean): Promise<void> {
-    await storage.setItem(KEYS.BIOMETRIC_ENABLED, enabled.toString());
+  setBiometricEnabled(enabled: boolean): void {
+    storage.setItem(KEYS.BIOMETRIC_ENABLED, enabled.toString());
   },
+};
+
+// =====================================
+// CLEAR ALL DATA
+// =====================================
+
+export const clearAllData = (): void => {
+  storage.clear();
 };
