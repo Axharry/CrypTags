@@ -10,6 +10,7 @@ import {
   Platform,
   Linking,
   Modal,
+  Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -306,7 +307,7 @@ export default function SettingsScreen() {
         </View>
 
         <Text style={[styles.version, { color: theme.textSecondary }]}>
-          CrypTags v2.0.0 (Offline)
+          CrypTags v2.0.1 (Offline)
         </Text>
       </ScrollView>
 
@@ -341,9 +342,18 @@ export default function SettingsScreen() {
                 I have a vision of building a company/startup that focuses intensively on the development of blockchain and cryptography, ultimately evolving into a technology conglomerate capable of turning hundreds of bold and unconventional ideas into reality, ideas that have the potential to reshape the world.
               </Text>
               
-              <Text style={[styles.memoText, { color: theme.text, marginTop: 16, marginBottom: 96 }]}>
+              <Text style={[styles.memoText, { color: theme.text, marginTop: 16 }]}>
                 I draw a great deal of inspiration from a young man with glasses, a crypto figure who is quite well known in my country. His journey motivates me to create meaningful impact and contribute value to society.
               </Text>
+
+              {/* Logo with 90px spacing before and after */}
+              <View style={styles.memoLogoContainer}>
+                <Image
+                  source={{ uri: 'https://customer-assets.emergentagent.com/job_cryptags-preview/artifacts/z0ufdalo_CT.png' }}
+                  style={styles.memoLogo}
+                  resizeMode="contain"
+                />
+              </View>
               
             </ScrollView>
             
@@ -531,12 +541,23 @@ const styles = StyleSheet.create({
   },
   memoContent: {
     padding: 24,
-    maxHeight: 500,
+    maxHeight: 450,
+    paddingBottom: 40,
   },
   memoText: {
     fontSize: 16,
     lineHeight: 26,
     textAlign: 'justify',
+  },
+  memoLogoContainer: {
+    marginTop: 90,
+    marginBottom: 90,
+    alignItems: 'center',
+  },
+  memoLogo: {
+    width: 120,
+    height: 120,
+    borderRadius: 24,
   },
   memoCloseButton: {
     margin: 20,
